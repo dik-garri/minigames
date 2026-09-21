@@ -437,10 +437,11 @@ button.cube:active {
   from { transform: rotate(-1.2deg) translateY(16px) scale(.96); opacity: 0; }
 }
 
-/* конфетти сыплется один раз при финише */
+/* конфетти: короткий залп за каждое слово и щедрый на финише */
 .confetti {
   position: fixed;
   inset: 0;
+  z-index: 50;
   overflow: hidden;
   pointer-events: none;
 }

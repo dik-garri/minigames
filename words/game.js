@@ -343,6 +343,7 @@ function solved() {
   el.boardHint.textContent = round.word;
   el.boardHint.className = 'board__hint is-good';
   el.flash.classList.add('is-on');
+  cheer();
   el.live.textContent = `Верно: ${round.word}`;
   setTimeout(() => el.flash.classList.remove('is-on'), 500);
   updateHud();
@@ -360,23 +361,30 @@ function updateHud() {
   el.time.textContent = formatTime(Date.now() - state.startedAt);
 }
 
-function dropConfetti() {
+const CONFETTI_COLORS = ['#FF5D73', '#17A67A', '#FFD27D', '#B79CFF', '#FFFFFF'];
+
+function dropConfetti({ count, speed, spread }) {
   const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (calm) return;
 
-  const colors = ['#FF5D73', '#17A67A', '#FFD27D', '#B79CFF', '#FFFFFF'];
-  const pieces = Array.from({ length: 22 }, (_, i) => {
+  const pieces = Array.from({ length: count }, (_, i) => {
     const piece = document.createElement('i');
-    piece.style.left = `${Math.random() * 96}%`;
-    piece.style.background = colors[i % colors.length];
-    piece.style.animationDuration = `${2.2 + Math.random() * 1.6}s`;
-    piece.style.animationDelay = `${Math.random() * 0.7}s`;
+    piece.style.left = `${50 + (Math.random() - 0.5) * spread}%`;
+    piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    piece.style.animationDuration = `${speed + Math.random() * speed * 0.7}s`;
+    piece.style.animationDelay = `${Math.random() * 0.35}s`;
     piece.style.setProperty('--spin', `${360 + Math.random() * 540}deg`);
+    piece.addEventListener('animationend', () => piece.remove());
     return piece;
   });
-  el.confetti.replaceChildren(...pieces);
-  setTimeout(() => el.confetti.replaceChildren(), 4600);
+  el.confetti.append(...pieces);
 }
+
+// короткий залп над доской — награда за слово
+const cheer = () => dropConfetti({ count: 12, speed: 1.3, spread: 70 });
+
+// щедрый финальный — на весь экран
+const celebrate = () => dropConfetti({ count: 26, speed: 2.2, spread: 96 });
 
 function finish() {
   clearInterval(ticker);
@@ -390,7 +398,7 @@ function finish() {
   el.statSkips.textContent = state.skips;
   el.copy.textContent = 'Скопировать результат';
   showScreen('done');
-  dropConfetti();
+  celebrate();
   buzz([30, 60, 30, 60, 90]);
 }
 
@@ -410,7 +418,7 @@ el.skip.addEventListener('click', skipWord);
 
 el.copy.addEventListener('click', async () => {
   const time = formatTime(state.finishedAt - state.startedAt);
-  const text = `Детские слова на бебишауэре Яны: ${WORDS.length} из ${WORDS.length} за ${time}. Подсказок: ${state.hints} из ${MAX_HINTS}.`;
+  const text = `Детские слова: ${WORDS.length} из ${WORDS.length} за ${time}. Подсказок: ${state.hints} из ${MAX_HINTS}.`;
   try {
     await navigator.clipboard.writeText(text);
     el.copy.textContent = 'Скопировано ✓';
