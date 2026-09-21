@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#F3ECFF">
+<title>Что в маминой сумке? — мини-игра</title>
+<meta name="description" content="За пять минут вспомните как можно больше детских вещей. Счёт считается сам.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👜</text></svg>">
+</head>
+<body>
+
+<!-- ЭКРАН 1 — старт -->
+<section class="screen screen--intro is-on" id="screen-intro">
+  <div class="intro">
+    <p class="eyebrow">Мини-игра для гостей</p>
+    <h1 class="title">Что в маминой<br><span class="title__accent">сумке?</span></h1>
+
+    <div class="bag bag--demo" aria-hidden="true">
+      <span class="bag__handle"></span>
+      <div class="bag__body">
+        <span class="thing">соска</span>
+        <span class="thing">пелёнка</span>
+        <span class="thing">ниблер</span>
+      </div>
+    </div>
+
+    <ol class="rules">
+      <li>Пять минут, чтобы вспомнить как можно больше детских вещей.</li>
+      <li>Пишите по одной и жмите ввод — вещь падает в сумку.</li>
+      <li>Счёт считается сам. Повторы и разные формы одного слова не пройдут.</li>
+    </ol>
+
+    <p class="cue">Ведущий считает до трёх — жмём вместе</p>
+    <button class="btn btn--go" id="btn-start" type="button">Старт</button>
+    <p class="resume" id="resume-note" hidden>
+      <button class="link" id="btn-resume" type="button">Продолжить прошлую игру</button>
+    </p>
+  </div>
+</section>
+
+<!-- ЭКРАН 2 — отсчёт -->
+<section class="screen screen--count" id="screen-count" aria-hidden="true">
+  <div class="count" id="count-number">3</div>
+</section>
+
+<!-- ЭКРАН 3 — игра -->
+<section class="screen screen--game" id="screen-game" aria-hidden="true">
+  <header class="hud">
+    <div class="hud__time" id="hud-time">5:00</div>
+    <div class="hud__count"><span id="hud-score">0</span> <span class="hud__word">в сумке</span></div>
+  </header>
+
+  <form class="entry" id="entry-form" autocomplete="off">
+    <input class="entry__field" id="entry-field" type="text" inputmode="text"
+           placeholder="Что ещё берут с малышом?"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+           enterkeyhint="done" maxlength="40" aria-label="Название вещи">
+    <button class="entry__add" type="submit" aria-label="Добавить">＋</button>
+  </form>
+
+  <p class="status" id="status">&nbsp;</p>
+
+  <div class="bag" id="bag">
+    <span class="bag__handle"></span>
+    <div class="bag__body" id="bag-body">
+      <p class="bag__empty" id="bag-empty">Сумка пока пустая</p>
+    </div>
+  </div>
+
+  <p class="sr" id="live" role="status" aria-live="polite"></p>
+</section>
+
+<!-- ЭКРАН 4 — финиш -->
+<section class="screen screen--done" id="screen-done" aria-hidden="true">
+  <div class="done">
+    <div class="note">
+      <p class="eyebrow">Время вышло</p>
+      <div class="result" id="result-count">0</div>
+      <p class="result__label" id="result-label">вещей в сумке</p>
+      <div class="bag__body bag__body--final" id="final-list"></div>
+      <p class="note__unknown" id="final-unknown" hidden></p>
+    </div>
+    <button class="btn btn--go" id="btn-copy" type="button">Скопировать результат</button>
+    <button class="link" id="btn-again" type="button">Играть заново</button>
+  </div>
+</section>
+
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script src="words.js"></script>
+<script src="match.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
