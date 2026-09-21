@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3ECFF">
+<title>Мини-игры</title>
+<meta name="description" content="Небольшие игры для праздников — открываются на телефоне по ссылке.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<style>
+  :root {
+    --ink: #3A2B3F;
+    --ink-soft: #7A6B82;
+    --accent-ink: #C22B45;
+    --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    font-family: var(--font);
+    color: var(--ink);
+    background: #F3ECFF;
+    background-image:
+      radial-gradient(120% 80% at 15% 0%, #FFE9EE 0%, transparent 55%),
+      radial-gradient(100% 70% at 90% 100%, #E3F5EC 0%, transparent 60%);
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { width: min(420px, 100%); }
+  .eyebrow {
+    margin: 0 0 6px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h1 {
+    margin: 0 0 28px;
+    font-size: clamp(40px, 13vw, 60px);
+    line-height: .95; font-weight: 800; letter-spacing: -.02em;
+  }
+  .card {
+    display: block;
+    padding: 22px;
+    background: #fff;
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 5px 0 rgba(58, 43, 63, .1), 0 14px 30px rgba(58, 43, 63, .1);
+    transition: transform .14s ease, box-shadow .14s ease;
+  }
+  .card:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(58, 43, 63, .1); }
+  .card__name { font-size: 24px; font-weight: 800; }
+  .card__desc { margin: 6px 0 0; font-size: 15px; line-height: 1.4; color: var(--ink-soft); }
+  .card__meta { margin: 14px 0 0; font-size: 13px; font-weight: 700; color: var(--accent-ink); }
+  .cubes { display: flex; gap: 6px; margin-bottom: 14px; }
+  .cube {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    font-size: 17px; font-weight: 800; color: #4A3320;
+    background: #FFF6E2;
+    border-radius: 22%;
+    box-shadow: 0 4px 0 #E8C68C;
+  }
+  .cube:nth-child(2) { transform: rotate(4deg); }
+  .cube:nth-child(3) { transform: rotate(-5deg); }
+  .cube:nth-child(4) { transform: rotate(3deg); }
+  a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Открывается с телефона</p>
+    <h1>Мини-игры</h1>
+
+    <a class="card" href="words/">
+      <div class="cubes" aria-hidden="true">
+        <span class="cube">С</span><span class="cube">Л</span><span class="cube">О</span><span class="cube">В</span>
+      </div>
+      <div class="card__name">Детские слова</div>
+      <p class="card__desc">20 слов с перепутанными буквами. Собираем из кубиков на скорость — выигрывает самое короткое время.</p>
+      <p class="card__meta">Играть →</p>
+    </a>
+  </div>
+</body>
+</html>
