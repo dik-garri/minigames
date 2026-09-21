@@ -38,7 +38,8 @@ const el = {
   statHints: $('stat-hints'),
   statSkips: $('stat-skips'),
   copy: $('btn-copy'),
-  again: $('btn-again')
+  again: $('btn-again'),
+  confetti: $('confetti')
 };
 
 let state = null;   // сохраняемый прогресс
@@ -359,6 +360,24 @@ function updateHud() {
   el.time.textContent = formatTime(Date.now() - state.startedAt);
 }
 
+function dropConfetti() {
+  const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (calm) return;
+
+  const colors = ['#FF5D73', '#17A67A', '#FFD27D', '#B79CFF', '#FFFFFF'];
+  const pieces = Array.from({ length: 22 }, (_, i) => {
+    const piece = document.createElement('i');
+    piece.style.left = `${Math.random() * 96}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDuration = `${2.2 + Math.random() * 1.6}s`;
+    piece.style.animationDelay = `${Math.random() * 0.7}s`;
+    piece.style.setProperty('--spin', `${360 + Math.random() * 540}deg`);
+    return piece;
+  });
+  el.confetti.replaceChildren(...pieces);
+  setTimeout(() => el.confetti.replaceChildren(), 4600);
+}
+
 function finish() {
   clearInterval(ticker);
   state.done = true;
@@ -371,6 +390,7 @@ function finish() {
   el.statSkips.textContent = state.skips;
   el.copy.textContent = 'Скопировать результат';
   showScreen('done');
+  dropConfetti();
   buzz([30, 60, 30, 60, 90]);
 }
 
@@ -390,7 +410,7 @@ el.skip.addEventListener('click', skipWord);
 
 el.copy.addEventListener('click', async () => {
   const time = formatTime(state.finishedAt - state.startedAt);
-  const text = `Детские слова: 20 из 20 за ${time}. Подсказок: ${state.hints}.`;
+  const text = `Детские слова на бебишауэре Яны: ${WORDS.length} из ${WORDS.length} за ${time}. Подсказок: ${state.hints} из ${MAX_HINTS}.`;
   try {
     await navigator.clipboard.writeText(text);
     el.copy.textContent = 'Скопировано ✓';
