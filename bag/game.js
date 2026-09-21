@@ -1,14 +1,16 @@
-/* Что в маминой сумке — пять минут на то, чтобы вспомнить детские вещи.
+/* Что в маминой сумке — три минуты на то, чтобы вспомнить детские вещи.
    Подсчёт целиком на устройстве: результат виден сразу, ведущий ничего не сводит. */
 
-const ROUND_MS = 5 * 60 * 1000;
+const ROUND_MS = 3 * 60 * 1000;
+const RUSH_MS = 45 * 1000;        // с этого момента таймер краснеет
 const SAVE_KEY = 'baby-bag-v1';
 
+// пороги подобраны под три минуты: за пять они были бы вдвое дальше
 const MILESTONES = [
-  { at: 10, text: 'Собрались в поликлинику' },
-  { at: 20, text: 'Готовы к выписке' },
-  { at: 30, text: 'Мама со стажем' },
-  { at: 40, text: 'Это уже детский магазин' }
+  { at: 8,  text: 'Собрались в поликлинику' },
+  { at: 15, text: 'Готовы к выписке' },
+  { at: 22, text: 'Мама со стажем' },
+  { at: 30, text: 'Это уже детский магазин' }
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -138,7 +140,7 @@ function startPlaying() {
 function tick() {
   const left = state.startedAt + ROUND_MS - Date.now();
   el.time.textContent = formatTime(left);
-  el.time.classList.toggle('is-late', left <= 60000);
+  el.time.classList.toggle('is-late', left <= RUSH_MS);
   if (left <= 0) finish();
 }
 
@@ -275,7 +277,7 @@ el.copy.addEventListener('click', async () => {
   const total = counted();
   const open = disputed();
   const tail = open.length ? ` Под вопросом ещё ${open.length}: ${open.map((t) => t.name).join(', ')}.` : '';
-  const text = `Что в маминой сумке: ${total} ${plural(total, 'вещь', 'вещи', 'вещей')} за 5 минут.${tail}`;
+  const text = `Что в маминой сумке: ${total} ${plural(total, 'вещь', 'вещи', 'вещей')} за 3 минуты.${tail}`;
   try {
     await navigator.clipboard.writeText(text);
     el.copy.textContent = 'Скопировано ✓';
