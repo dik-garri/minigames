@@ -28,11 +28,8 @@ body {
   color: var(--ink);
   background: var(--bg);
   background-image:
-    radial-gradient(circle at center, rgba(58, 43, 63, .055) 1.6px, transparent 1.7px),
     radial-gradient(120% 80% at 15% 0%, var(--bg-warm) 0%, transparent 55%),
     radial-gradient(100% 70% at 90% 100%, #E3F5EC 0%, transparent 60%);
-  background-size: 26px 26px, cover, cover;
-  background-position: 6px 6px, center, center;
   background-attachment: fixed;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -98,35 +95,78 @@ body {
 .bag {
   position: relative;
   width: 100%;
-  padding-top: 16px;           /* место под ручку */
+  padding-top: 38px;           /* место под ремешок */
 }
 
+/* ремешок: приплюснутая дуга с заклёпками на концах */
 .bag__handle {
   position: absolute;
-  top: -12px; left: 50%;
-  width: 92px; height: 46px;
-  margin-left: -46px;
-  border: 7px solid var(--bag-strap);
+  top: 0; left: 50%;
+  width: 124px; height: 56px;
+  margin-left: -62px;
+  border: 9px solid var(--bag-strap);
   border-bottom: 0;
-  border-radius: 48px 48px 0 0;
+  border-radius: 62px 62px 6px 6px / 56px 56px 0 0;
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, .25);
 }
+.bag__handle::before,
+.bag__handle::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--bag-strap);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .45);
+}
+.bag__handle::before { left: -12px; }
+.bag__handle::after  { right: -12px; }
 
+/* корпус: книзу шире, дно темнее, по краю строчка */
 .bag__body {
   position: relative;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 7px;
-  padding: 16px 14px;
-  background: var(--bag);
-  background-image: linear-gradient(170deg, rgba(255, 255, 255, .8), transparent 55%);
-  border-radius: 14px 14px 26px 26px;
-  box-shadow: inset 0 0 0 2px rgba(200, 154, 91, .35), 0 6px 0 var(--bag-edge), 0 16px 30px rgba(58, 43, 63, .14);
+  padding: 26px 16px 20px;
+  background:
+    linear-gradient(180deg, rgba(232, 198, 140, .45) 0 14px, transparent 14px),
+    linear-gradient(172deg, #FFFBF0 0%, var(--bag) 42%, #F6E4C2 100%);
+  border-radius: 10px 10px 30px 30px;
+  box-shadow:
+    inset 0 -18px 26px -18px rgba(160, 118, 60, .5),
+    0 7px 0 var(--bag-edge),
+    0 18px 34px rgba(58, 43, 63, .16);
+}
+
+/* намёточная строчка по периметру и накладной карман */
+.bag__body::before {
+  content: "";
+  position: absolute;
+  inset: 7px 9px 9px;
+  border: 2px dashed rgba(160, 118, 60, .4);
+  border-radius: 6px 6px 24px 24px;
+  pointer-events: none;
+}
+.bag__body::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: 0;
+  width: 42%; height: 34px;
+  margin-left: -21%;
+  border: 2px dashed rgba(160, 118, 60, .32);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, transparent, rgba(160, 118, 60, .07));
+  pointer-events: none;
 }
 
 .bag--demo .bag__body { justify-content: center; }
 
 .thing {
+  position: relative;   /* поверх строчки и кармана */
+  z-index: 1;
   padding: 8px 13px;
   font-size: 15px; font-weight: 700;
   color: var(--thing-ink);
@@ -216,8 +256,13 @@ body {
 @keyframes tick {
   50% { opacity: .55; }
 }
-.hud__count { font-size: 22px; font-weight: 800; }
+.hud__count { font-size: 22px; font-weight: 800; text-align: right; }
 .hud__word { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.hud__open {
+  display: block;
+  font-size: 12px; font-weight: 700;
+  color: var(--warn);
+}
 
 .entry { display: flex; gap: 8px; }
 .entry__field {

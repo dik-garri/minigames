@@ -20,6 +20,7 @@ const el = {
   countNumber: $('count-number'),
   time: $('hud-time'),
   score: $('hud-score'),
+  unknown: $('hud-unknown'),
   form: $('entry-form'),
   field: $('entry-field'),
   status: $('status'),
@@ -146,6 +147,17 @@ function say(text, kind) {
   el.status.className = `status${kind ? ` status--${kind}` : ''}`;
 }
 
+/* В счёт идут только вещи из словаря. Остальные лежат в сумке с пометкой:
+   ведущий может их признать, но сама игра их не засчитывает. */
+const counted = () => state.things.filter((t) => t.known).length;
+const disputed = () => state.things.filter((t) => !t.known);
+
+function updateScore() {
+  el.score.textContent = counted();
+  const open = disputed().length;
+  el.unknown.textContent = open ? `+${open} под вопросом` : '';
+}
+
 function addThing(raw) {
   const typed = raw.trim();
   if (typed.length < 2) return;
@@ -168,7 +180,7 @@ function addThing(raw) {
   save();
 
   if (!found.canonical) {
-    say(`«${name}» — нет в словаре, но засчитано`, 'unknown');
+    say(`«${name}» — нет в словаре, не засчитано`, 'unknown');
   } else if (found.fuzzy) {
     say(`Засчитано как «${name}»`, 'good');
   } else {
@@ -176,8 +188,8 @@ function addThing(raw) {
   }
 
   buzz(18);
-  el.score.textContent = state.things.length;
-  el.live.textContent = `${state.things.length}: ${name}`;
+  updateScore();
+  el.live.textContent = `${counted()}: ${name}`;
   addThingToBag(state.things[state.things.length - 1], true);
   checkMilestone();
 }
@@ -192,14 +204,14 @@ function addThingToBag(thing, fresh) {
 }
 
 function renderBag() {
-  el.score.textContent = state.things.length;
+  updateScore();
   [...el.bagBody.querySelectorAll('.thing')].forEach((n) => n.remove());
   state.things.forEach((thing) => addThingToBag(thing, false));
   if (el.bagEmpty) el.bagEmpty.hidden = state.things.length > 0;
 }
 
 function checkMilestone() {
-  const reached = MILESTONES.find((m) => m.at === state.things.length && !state.shown.includes(m.at));
+  const reached = MILESTONES.find((m) => m.at === counted() && !state.shown.includes(m.at));
   if (!reached) return;
   state.shown.push(reached.at);
   save();
@@ -219,21 +231,24 @@ function finish() {
   save();
   if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
 
-  const total = state.things.length;
-  const unknown = state.things.filter((t) => !t.known);
+  const total = counted();
+  const open = disputed();
 
   el.resultCount.textContent = total;
   el.resultLabel.textContent = `${plural(total, 'вещь', 'вещи', 'вещей')} в сумке`;
-  el.finalList.replaceChildren(...state.things.map((thing) => {
+
+  // сначала засчитанные, спорные — в конце списка
+  const ordered = [...state.things.filter((t) => t.known), ...open];
+  el.finalList.replaceChildren(...ordered.map((thing) => {
     const chip = document.createElement('span');
     chip.className = `thing${thing.known ? '' : ' thing--unknown'}`;
     chip.textContent = thing.name;
     return chip;
   }));
 
-  if (unknown.length) {
+  if (open.length) {
     el.finalUnknown.hidden = false;
-    el.finalUnknown.textContent = `Нет в словаре, отмечены знаком вопроса: ${unknown.map((t) => t.name).join(', ')}. Засчитаны — ведущий может оспорить.`;
+    el.finalUnknown.textContent = `Не засчитано, нет в словаре: ${open.map((t) => t.name).join(', ')}. Если ведущий признает — прибавьте к счёту вручную.`;
   } else {
     el.finalUnknown.hidden = true;
   }
@@ -257,9 +272,9 @@ el.form.addEventListener('submit', (event) => {
 });
 
 el.copy.addEventListener('click', async () => {
-  const total = state.things.length;
-  const unknown = state.things.filter((t) => !t.known).length;
-  const tail = unknown ? ` Из них вне словаря: ${unknown}.` : '';
+  const total = counted();
+  const open = disputed();
+  const tail = open.length ? ` Под вопросом ещё ${open.length}: ${open.map((t) => t.name).join(', ')}.` : '';
   const text = `Что в маминой сумке: ${total} ${plural(total, 'вещь', 'вещи', 'вещей')} за 5 минут.${tail}`;
   try {
     await navigator.clipboard.writeText(text);
