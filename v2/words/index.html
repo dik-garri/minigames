@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#F3ECFF">
+<title>Детские слова — мини-игра</title>
+<meta name="description" content="Игра для гостей: соберите 20 детских слов из перепутанных букв на скорость.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧸</text></svg>">
+</head>
+<body>
+
+<!-- ЭКРАН 1 — старт -->
+<section class="screen screen--intro is-on" id="screen-intro">
+  <div class="intro">
+    <p class="eyebrow">Мини-игра для гостей</p>
+    <h1 class="title">Детские<br><span class="title__accent">слова</span></h1>
+
+    <div class="demo" aria-hidden="true">
+      <span class="cube cube--demo" style="--t:-7deg">А</span>
+      <span class="cube cube--demo" style="--t:5deg">Г</span>
+      <span class="cube cube--demo" style="--t:-3deg">У</span>
+    </div>
+
+    <ol class="rules">
+      <li>Буквы перепутаны — соберите слово, нажимая на кубики.</li>
+      <li>Всего 20 слов, у каждого свой порядок. Подсказок на игру — пять.</li>
+      <li>Время идёт с первого слова. Кто быстрее?</li>
+    </ol>
+
+    <p class="cue">Ведущий считает до трёх — жмём вместе</p>
+    <button class="btn btn--go" id="btn-start" type="button">Старт</button>
+    <p class="resume" id="resume-note" hidden>
+      <button class="link" id="btn-resume" type="button">Продолжить прошлую игру</button>
+    </p>
+  </div>
+</section>
+
+<!-- ЭКРАН 2 — отсчёт -->
+<section class="screen screen--count" id="screen-count" aria-hidden="true">
+  <div class="count" id="count-number">3</div>
+</section>
+
+<!-- ЭКРАН 3 — игра -->
+<section class="screen screen--game" id="screen-game" aria-hidden="true">
+  <header class="hud">
+    <div class="hud__score"><span id="hud-solved">0</span><span class="hud__total">/20</span></div>
+    <div class="hud__bar"><i id="hud-fill"></i></div>
+    <div class="hud__time" id="hud-time">0:00</div>
+  </header>
+
+  <main class="board">
+    <p class="board__hint" id="board-hint">Соберите слово</p>
+    <div class="slots" id="slots"></div>
+    <div class="cubes" id="cubes"></div>
+  </main>
+
+  <footer class="tools">
+    <button class="btn btn--ghost" id="btn-hint" type="button">Подсказка · 5</button>
+    <button class="btn btn--ghost" id="btn-skip" type="button">Отложить</button>
+  </footer>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <p class="sr" id="live" role="status" aria-live="polite"></p>
+</section>
+
+<!-- ЭКРАН 4 — финиш -->
+<section class="screen screen--done" id="screen-done" aria-hidden="true">
+  <div class="done">
+    <div class="note">
+      <p class="eyebrow">Все 20 слов собраны</p>
+      <div class="result" id="result-time">0:00</div>
+      <p class="result__label">ваше время</p>
+      <dl class="stats">
+        <div><dt>Подсказок из 5</dt><dd id="stat-hints">0</dd></div>
+        <div><dt>Откладываний</dt><dd id="stat-skips">0</dd></div>
+      </dl>
+      <p class="note__sign">Двадцать из двадцати</p>
+    </div>
+    <button class="btn btn--go" id="btn-copy" type="button">Скопировать результат</button>
+    <button class="link" id="btn-again" type="button">Играть заново</button>
+  </div>
+</section>
+
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script src="../shared/physics.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+/* Что в маминой сумке — палитра общая с «Детскими словами»,
+   но главный предмет здесь не кубик, а сама сумка. */
+
+:root {
+  --ink:        #3A2B3F;
+  --ink-soft:   #7A6B82;
+  --bg:         #F3ECFF;
+  --bg-warm:    #FFE9EE;
+  --paper:      #FFFFFF;
+  --bag:        #FFF6E2;
+  --bag-edge:   #E8C68C;
+  --bag-strap:  #C89A5B;
+  --thing-ink:  #4A3320;
+  --accent:     #FF5D73;
+  --accent-ink: #C22B45;
+  --good:       #17A67A;
+  --warn:       #B8860B;
+
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  background-image:
+    radial-gradient(120% 80% at 15% 0%, var(--bg-warm) 0%, transparent 55%),
+    radial-gradient(100% 70% at 90% 100%, #E3F5EC 0%, transparent 60%);
+  background-attachment: fixed;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.screen {
+  display: none;
+  min-height: 100svh;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+}
+.screen.is-on { display: flex; }
+
+/* ——— общие типографика и кнопки ——— */
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(38px, 12vw, 58px);
+  line-height: .95; font-weight: 800; letter-spacing: -.02em;
+}
+.title__accent { color: var(--accent-ink); }
+
+.btn {
+  font-family: inherit; font-weight: 800;
+  border: 0; cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn:active { transform: translateY(3px); }
+
+.btn--go {
+  display: block; width: 100%;
+  padding: 19px 24px;
+  font-size: 20px; color: #fff;
+  background: var(--accent);
+  border-radius: 18px;
+  box-shadow: 0 5px 0 var(--accent-ink), 0 12px 24px rgba(194, 43, 69, .28);
+}
+.btn--go:active { box-shadow: 0 2px 0 var(--accent-ink), 0 6px 14px rgba(194, 43, 69, .22); }
+
+.link {
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  color: var(--ink-soft); background: none; border: 0;
+  padding: 12px; text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+:where(button, input):focus-visible {
+  outline: 3px solid var(--accent-ink);
+  outline-offset: 3px;
+}
+
+/* ——— сумка: главный предмет игры ——— */
+
+.bag {
+  position: relative;
+  width: 100%;
+  padding-top: 38px;           /* место под ремешок */
+}
+
+/* ремешок: приплюснутая дуга с заклёпками на концах */
+.bag__handle {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 124px; height: 56px;
+  margin-left: -62px;
+  border: 9px solid var(--bag-strap);
+  border-bottom: 0;
+  border-radius: 62px 62px 6px 6px / 56px 56px 0 0;
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, .25);
+}
+.bag__handle::before,
+.bag__handle::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--bag-strap);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .45);
+}
+.bag__handle::before { left: -12px; }
+.bag__handle::after  { right: -12px; }
+
+/* корпус: книзу шире, дно темнее, по краю строчка */
+.bag__body {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 7px;
+  padding: 26px 16px 20px;
+  background:
+    linear-gradient(180deg, rgba(232, 198, 140, .45) 0 14px, transparent 14px),
+    linear-gradient(172deg, #FFFBF0 0%, var(--bag) 42%, #F6E4C2 100%);
+  border-radius: 10px 10px 30px 30px;
+  box-shadow:
+    inset 0 -18px 26px -18px rgba(160, 118, 60, .5),
+    0 7px 0 var(--bag-edge),
+    0 18px 34px rgba(58, 43, 63, .16);
+}
+
+/* намёточная строчка по периметру и накладной карман */
+.bag__body::before {
+  content: "";
+  position: absolute;
+  inset: 7px 9px 9px;
+  border: 2px dashed rgba(160, 118, 60, .4);
+  border-radius: 6px 6px 24px 24px;
+  pointer-events: none;
+}
+.bag__body::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: 0;
+  width: 42%; height: 34px;
+  margin-left: -21%;
+  border: 2px dashed rgba(160, 118, 60, .32);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, transparent, rgba(160, 118, 60, .07));
+  pointer-events: none;
+}
+
+.bag--demo .bag__body { justify-content: center; }
+
+.thing {
+  position: relative;   /* поверх строчки и кармана */
+  z-index: 1;
+  padding: 8px 13px;
+  font-size: 15px; font-weight: 700;
+  color: var(--thing-ink);
+  background: var(--paper);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 rgba(58, 43, 63, .12);
+  animation: tuck .28s cubic-bezier(.2, .9, .3, 1.25) backwards;
+}
+.thing--unknown {
+  color: var(--warn);
+  background: #FFF9E8;
+  box-shadow: 0 2px 0 rgba(184, 134, 11, .28);
+}
+.thing--unknown::after {
+  content: " ?";
+  font-weight: 800;
+  opacity: .7;
+}
+
+@keyframes tuck {
+  from { transform: translateY(-16px) scale(.85); opacity: 0; }
+}
+
+/* ——— экран 1 ——— */
+
+.screen--intro { align-items: center; justify-content: center; }
+.intro { width: min(440px, 100%); text-align: center; }
+
+/* открытие: сумка распахивается, вещи падают внутрь, текст поднимается следом */
+.bag--demo { margin: 30px auto 26px; max-width: 300px; }
+.bag--demo .bag__body {
+  transform-origin: bottom center;
+  animation: bag-open .65s .25s cubic-bezier(.2, .9, .3, 1.25) both;
+}
+.bag--demo .bag__handle { animation: handle-rise .6s .15s ease-out both; }
+.bag--demo .thing { animation: thing-drop .6s cubic-bezier(.2, .8, .3, 1.4) both; }
+.bag--demo .thing:nth-child(1) { animation-delay: .72s; }
+.bag--demo .thing:nth-child(2) { animation-delay: .86s; }
+.bag--demo .thing:nth-child(3) { animation-delay: 1s; }
+
+@keyframes bag-open {
+  from { transform: scaleY(.4) scaleX(.9); opacity: 0; }
+}
+@keyframes handle-rise {
+  from { transform: translateY(16px) scaleX(.7); opacity: 0; }
+}
+@keyframes thing-drop {
+  0%   { transform: translateY(-80px) rotate(-14deg); opacity: 0; }
+  60%  { transform: translateY(5px) rotate(4deg); opacity: 1; }
+  100% { transform: none; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes rise-pop {
+  0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+  100% { opacity: 1; transform: none; }
+}
+
+.screen--intro .eyebrow { animation: rise .55s ease-out both; }
+.screen--intro .title   { animation: rise .6s .08s ease-out both; }
+.screen--intro .rules li { animation: rise .5s ease-out both; }
+.screen--intro .rules li:nth-child(1) { animation-delay: 1.05s; }
+.screen--intro .rules li:nth-child(2) { animation-delay: 1.15s; }
+.screen--intro .rules li:nth-child(3) { animation-delay: 1.25s; }
+.screen--intro .rules li:nth-child(4) { animation-delay: 1.35s; }
+.screen--intro .cue     { animation: rise .5s 1.45s ease-out both; }
+.screen--intro .btn--go { animation: rise-pop .6s 1.55s cubic-bezier(.2, .8, .3, 1.3) both; }
+
+.rules {
+  margin: 0 auto 24px; padding: 0;
+  list-style: none; counter-reset: r;
+  text-align: left; max-width: 340px;
+}
+.rules li {
+  counter-increment: r; position: relative;
+  padding: 9px 0 9px 34px;
+  font-size: 15px; line-height: 1.4; color: var(--ink-soft);
+}
+.rules li::before {
+  content: counter(r);
+  position: absolute; left: 0; top: 9px;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  background: var(--paper); color: var(--ink);
+  font-size: 12px; font-weight: 800;
+}
+
+.cue {
+  margin: 0 0 12px;
+  font-size: 14px; font-weight: 700; color: var(--accent-ink);
+}
+.resume { margin: 16px 0 0; }
+
+/* ——— экран 2 ——— */
+
+.screen--count { align-items: center; justify-content: center; }
+.count {
+  font-size: clamp(120px, 44vw, 220px);
+  font-weight: 800; line-height: 1;
+  color: var(--accent-ink);
+  animation: pop .85s ease-out;
+}
+.count--go { font-size: clamp(64px, 22vw, 120px); }
+
+@keyframes pop {
+  0%   { transform: scale(.4); opacity: 0; }
+  35%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ——— экран 3 ——— */
+
+.screen--game { flex-direction: column; gap: 12px; }
+
+.hud {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}
+.hud__time {
+  font-size: 34px; font-weight: 800; line-height: 1;
+  transition: color .3s ease;
+}
+.hud__time.is-late { color: var(--accent-ink); animation: tick 1s steps(2) infinite; }
+@keyframes tick {
+  50% { opacity: .55; }
+}
+.hud__count { font-size: 22px; font-weight: 800; text-align: right; }
+.hud__word { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.hud__open {
+  display: block;
+  font-size: 12px; font-weight: 700;
+  color: var(--warn);
+}
+
+.entry { display: flex; gap: 8px; }
+.entry__field {
+  flex: 1; min-width: 0;
+  padding: 15px 16px;
+  font-family: inherit; font-size: 17px; font-weight: 700;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  box-shadow: 0 3px 0 rgba(58, 43, 63, .1);
+}
+.entry__field::placeholder { color: #B9AEC0; font-weight: 600; }
+.entry__add {
+  width: 54px;
+  font-family: inherit; font-size: 24px; font-weight: 800; line-height: 1;
+  color: #fff; background: var(--accent);
+  border: 0; border-radius: 14px;
+  box-shadow: 0 3px 0 var(--accent-ink);
+  cursor: pointer;
+}
+.entry__add:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--accent-ink); }
+
+.status {
+  margin: 0; min-height: 20px;
+  font-size: 14px; font-weight: 700;
+  color: var(--ink-soft);
+}
+.status--good { color: var(--good); }
+.status--dupe { color: var(--accent-ink); }
+.status--unknown { color: var(--warn); }
+
+.screen--game .bag {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.screen--game .bag__body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* физический режим: вещи падают внутрь и сваливаются кучей */
+.bag__body.is-physical {
+  display: block;
+  overflow: hidden;
+  padding: 14px 12px;
+}
+.bag__body.is-physical .thing {
+  position: absolute;
+  top: 14px; left: 12px;
+  margin: 0;
+  white-space: nowrap;
+  will-change: transform;
+}
+/* сумка набилась — утрамбовываем содержимое */
+.bag__body.is-dense-1 .thing { font-size: 13px; padding: 6px 10px; }
+.bag__body.is-dense-2 .thing { font-size: 11px; padding: 4px 8px; }
+.bag__empty {
+  margin: auto;
+  font-size: 15px; font-weight: 700;
+  color: rgba(122, 107, 130, .7);
+}
+
+.milestone {
+  position: fixed;
+  left: 50%; bottom: 26px;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  font-size: 15px; font-weight: 800;
+  color: #fff; background: var(--good);
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(23, 166, 122, .35);
+  animation: toast 2.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 60;
+}
+@keyframes toast {
+  0%   { opacity: 0; transform: translate(-50%, 14px); }
+  12%  { opacity: 1; transform: translate(-50%, 0); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+/* ——— экран 4 ——— */
+
+.screen--done { align-items: center; justify-content: center; }
+.done { width: min(430px, 100%); text-align: center; }
+
+.note {
+  position: relative;
+  padding: 24px 18px 18px;
+  margin-bottom: 22px;
+  background: var(--paper);
+  border-radius: 24px;
+  box-shadow: 0 6px 0 rgba(58, 43, 63, .08), 0 18px 40px rgba(58, 43, 63, .14);
+  transform: rotate(-1.2deg);
+  animation: card-in .5s ease-out;
+}
+.note::before {
+  content: "";
+  position: absolute; inset: 8px;
+  border: 2px dashed rgba(58, 43, 63, .18);
+  border-radius: 17px;
+  pointer-events: none;
+}
+.note__unknown {
+  margin: 14px 4px 0;
+  font-size: 13px; font-weight: 700; line-height: 1.45;
+  color: var(--warn);
+}
+
+@keyframes card-in {
+  from { transform: rotate(-1.2deg) translateY(16px) scale(.96); opacity: 0; }
+}
+
+.result {
+  font-size: clamp(76px, 26vw, 116px);
+  font-weight: 800; line-height: 1;
+  color: var(--good);
+  font-variant-numeric: tabular-nums;
+  animation: pop .6s ease-out;
+}
+.result__label {
+  margin: 4px 0 18px;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.bag__body--final {
+  max-height: 34vh;
+  overflow-y: auto;
+  justify-content: center;
+  box-shadow: inset 0 0 0 2px rgba(200, 154, 91, .3);
+}
+.bag__body--final .thing { animation: none; font-size: 14px; padding: 6px 11px; }
+
+/* ——— конфетти ——— */
+
+.confetti {
+  position: fixed; inset: 0;
+  z-index: 50;
+  overflow: hidden; pointer-events: none;
+}
+.confetti i {
+  position: absolute;
+  top: -8vh;
+  width: 9px; height: 14px;
+  border-radius: 2px;
+  opacity: .9;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to { transform: translateY(112vh) rotate(var(--spin, 540deg)); opacity: .85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

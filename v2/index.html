@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3ECFF">
-<title>Мини-игры</title>
+<title>Мини-игры — v2</title>
 <meta name="description" content="Небольшие игры для праздников — открываются на телефоне по ссылке.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
 <style>
@@ -80,25 +80,26 @@
   .cube:nth-child(2) { transform: rotate(4deg); }
   .cube:nth-child(3) { transform: rotate(-5deg); }
   .cube:nth-child(4) { transform: rotate(3deg); }
-  .next {
-    margin: 22px 4px 0;
+  .note {
+    margin: -18px 0 26px;
     font-size: 15px; line-height: 1.45; color: var(--ink-soft);
   }
-  .next a { color: var(--accent-ink); font-weight: 700; }
+  .note a { color: var(--accent-ink); font-weight: 700; }
   a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <p class="eyebrow">Открывается с телефона</p>
+    <p class="eyebrow">Версия 2 · с физикой</p>
     <h1>Мини-игры</h1>
+    <p class="note">Кубики и вещи падают по-настоящему. <a href="../">Первая версия здесь</a>.</p>
 
     <a class="card" href="words/">
       <div class="cubes" aria-hidden="true">
         <span class="cube">С</span><span class="cube">Л</span><span class="cube">О</span><span class="cube">В</span>
       </div>
       <div class="card__name">Детские слова</div>
-      <p class="card__desc">20 слов с перепутанными буквами. Собираем из кубиков на скорость — выигрывает самое короткое время.</p>
+      <p class="card__desc">Кубики сыплются на стол, собранное слово взлетает салютом. 20 слов, выигрывает самое короткое время.</p>
       <p class="card__meta">Играть →</p>
     </a>
 
@@ -108,13 +109,9 @@
         <span class="bag-mini__body"></span>
       </div>
       <div class="card__name">Что в маминой сумке?</div>
-      <p class="card__desc">Три минуты, чтобы вспомнить как можно больше детских вещей. Счёт считается сам — ведущему не нужно разбирать листочки.</p>
+      <p class="card__desc">Три минуты на детские вещи. Ярлыки падают в сумку и сваливаются кучей — к концу она набита доверху.</p>
       <p class="card__meta">Играть →</p>
     </a>
-
-    <p class="next">
-      Есть <a href="v2/">версия 2</a>: те же правила, но кубики и вещи падают по-настоящему.
-    </p>
   </div>
 </body>
 </html>

@@ -48,6 +48,96 @@ let ticker = null;
 let busy = false;   // блокирует ввод между словами
 let wakeLock = null;
 
+/* ——— физика кубиков ———
+   Кубики не просто появляются, а сыплются на стол и укладываются кучей.
+   Если движение выключено в системе или браузер без rAF — раскладка обычная,
+   потоком, и игра работает ровно так же. */
+
+const calmMode = () =>
+  typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const PHYSICS = typeof Physics !== 'undefined' &&
+  typeof requestAnimationFrame === 'function' &&
+  typeof document.createElement('div').getBoundingClientRect === 'function' &&
+  !calmMode();
+
+const FLIGHT_MS = 220;        // сколько кубик летит в слот
+let world = null;
+let raf = null;
+let lastFrame = 0;
+let debris = [];              // разлетающиеся буквы после верного слова
+
+function fieldSize() {
+  const rect = el.cubes.getBoundingClientRect();
+  return { w: Math.max(rect.width, 80), h: Math.max(rect.height, 80) };
+}
+
+function ensureWorld() {
+  const { w, h } = fieldSize();
+  if (!world) world = new Physics.World({ width: w, height: h, gravity: 2800 });
+  else world.resize(w, h);
+  return world;
+}
+
+function draw() {
+  for (const body of world.bodies) {
+    if (!body.node) continue;
+    body.node.style.transform =
+      `translate(${body.x.toFixed(1)}px, ${body.y.toFixed(1)}px) rotate(${body.angle.toFixed(1)}deg)`;
+  }
+}
+
+function loop(now) {
+  const dt = Math.min((now - lastFrame) / 1000 || 0.016, 0.05);
+  lastFrame = now;
+
+  let steps = Math.max(1, Math.round(dt / (1 / 60)));
+  while (steps--) world.step(1 / 60);
+  draw();
+
+  if (world.settled) { raf = null; return; }
+  raf = requestAnimationFrame(loop);
+}
+
+function runLoop() {
+  if (!PHYSICS || raf) return;
+  lastFrame = performance.now();
+  raf = requestAnimationFrame(loop);
+}
+
+function stopLoop() {
+  if (raf) cancelAnimationFrame(raf);
+  raf = null;
+}
+
+/* Кубик встаёт в мир: либо сыплется сверху, либо возвращается из слота */
+function spawnBody(node, at) {
+  const size = node.offsetWidth || 56;
+  const { w } = fieldSize();
+  const body = new Physics.Body({
+    x: at ? at.x : Math.random() * Math.max(w - size, 1),
+    y: at ? at.y : -size - Math.random() * 140,
+    w: size,
+    h: size,
+    vx: at ? (Math.random() - 0.5) * 120 : (Math.random() - 0.5) * 90,
+    vy: at ? 40 : 0,
+    va: (Math.random() - 0.5) * 220,
+    angle: at ? 0 : (Math.random() - 0.5) * 30,
+    restitution: 0.34,
+    node
+  });
+  world.add(body);
+  runLoop();
+  return body;
+}
+
+/* Координаты слота в системе координат поля с кубиками */
+function slotOffset(slotIndex) {
+  const slot = el.slots.children[slotIndex].getBoundingClientRect();
+  const field = el.cubes.getBoundingClientRect();
+  return { x: slot.left - field.left, y: slot.top - field.top, size: slot.width };
+}
+
 /* ——— утилиты ——— */
 
 const shuffle = (arr) => {
@@ -87,6 +177,16 @@ async function keepAwake() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && state && !state.done) keepAwake();
 });
+
+// поворот экрана: стол меняет размер, куча должна остаться внутри
+if (typeof addEventListener === 'function') {
+  addEventListener('resize', () => {
+    if (!PHYSICS || !world || !round) return;
+    ensureWorld();
+    world.bodies.forEach((b) => b.wake());
+    runLoop();
+  });
+}
 
 /* ——— сохранение (телефон может уснуть или обновить вкладку) ——— */
 
@@ -192,17 +292,31 @@ function renderSlots() {
 }
 
 function renderCubes(fresh) {
+  el.cubes.classList.toggle('is-physical', PHYSICS);
   el.cubes.replaceChildren(...round.tiles.map((tile, i) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'cube' + (tile.used ? ' is-used' : '') + (fresh ? ' is-new' : '');
+    b.className = 'cube' + (tile.used ? ' is-used' : '') + (fresh && !PHYSICS ? ' is-new' : '');
     b.style.setProperty('--t', `${(i % 5) * 3 - 6}deg`);
-    if (fresh) b.style.animationDelay = `${i * 35}ms`;
+    if (fresh && !PHYSICS) b.style.animationDelay = `${i * 35}ms`;
     b.textContent = tile.ch;
     b.setAttribute('aria-label', `Буква ${tile.ch}`);
     b.addEventListener('click', () => placeTile(i));
     return b;
   }));
+
+  if (!PHYSICS) return;
+
+  // старые тела больше не нужны: слово сменилось
+  debris.forEach((node) => node.remove());
+  debris = [];
+  ensureWorld().clear();
+  round.tiles.forEach((tile, i) => {
+    const node = el.cubes.children[i];
+    if (tile.used) { node.style.transform = ''; return; }
+    tile.body = spawnBody(node, null);
+  });
+  draw();
 }
 
 function syncView() {
@@ -214,7 +328,44 @@ function syncView() {
   });
   round.tiles.forEach((tile, i) => {
     el.cubes.children[i].classList.toggle('is-used', tile.used);
+    // убранный в слот кубик больше не участвует в куче
+    if (PHYSICS && tile.used && tile.body) {
+      world.remove(tile.body);
+      tile.body = null;
+    }
   });
+}
+
+/* Салют из букв: собранное слово подбрасывает свои буквы над столом */
+function burstWord() {
+  if (!PHYSICS) return;
+  const field = el.cubes.getBoundingClientRect();
+
+  round.slots.forEach((slot, i) => {
+    const rect = el.slots.children[i].getBoundingClientRect();
+    const node = document.createElement('span');
+    node.className = 'cube cube--debris';
+    node.textContent = slot.ch;
+    node.style.width = node.style.height = `${rect.width}px`;
+    node.style.fontSize = `${rect.width * 0.46}px`;
+    el.cubes.append(node);
+    debris.push(node);
+
+    const spread = (i - (round.slots.length - 1) / 2) * 90;
+    world.add(new Physics.Body({
+      x: rect.left - field.left,
+      y: rect.top - field.top,
+      w: rect.width,
+      h: rect.width,
+      vx: spread + (Math.random() - 0.5) * 120,
+      vy: -560 - Math.random() * 260,
+      va: (Math.random() - 0.5) * 700,
+      restitution: 0.42,
+      node
+    }));
+  });
+
+  runLoop();
 }
 
 function placeTile(tileIndex) {
@@ -227,8 +378,42 @@ function placeTile(tileIndex) {
 
   round.slots[slotIndex] = { ch: tile.ch, tile: tileIndex, locked: false };
   tile.used = true;
+
+  if (!PHYSICS) {
+    syncView();
+    checkWord();
+    return;
+  }
+
+  flyToSlot(tileIndex, slotIndex);
+}
+
+/* Кубик вылетает из кучи и садится в слот; буква в слоте проявляется,
+   когда кубик долетел, иначе она двоится в полёте. */
+function flyToSlot(tileIndex, slotIndex) {
+  const tile = round.tiles[tileIndex];
+  const node = el.cubes.children[tileIndex];
+  const target = slotOffset(slotIndex);
+  const size = node.offsetWidth || 56;
+
+  if (tile.body) { world.remove(tile.body); tile.body = null; }
+
+  const slotNode = el.slots.children[slotIndex];
+  slotNode.classList.add('is-arriving');
   syncView();
-  checkWord();
+
+  node.classList.remove('is-used');
+  node.style.transition = `transform ${FLIGHT_MS}ms cubic-bezier(.3, .7, .3, 1)`;
+  node.style.transform =
+    `translate(${target.x}px, ${target.y}px) scale(${(target.size / size).toFixed(3)}) rotate(0deg)`;
+
+  setTimeout(() => {
+    node.style.transition = '';
+    node.classList.add('is-used');
+    slotNode.classList.remove('is-arriving');
+    syncView();
+    checkWord();
+  }, FLIGHT_MS);
 }
 
 function takeBack(slotIndex) {
@@ -236,16 +421,30 @@ function takeBack(slotIndex) {
   const slot = round.slots[slotIndex];
   if (!slot.ch || slot.locked) return;
 
-  round.tiles[slot.tile].used = false;
+  const tileIndex = slot.tile;
+  round.tiles[tileIndex].used = false;
   round.slots[slotIndex] = { ch: null, tile: null, locked: false };
   syncView();
+  if (PHYSICS) dropBackFromSlot(tileIndex, slotIndex);
+}
+
+/* Буква возвращается из слота: кубик появляется на месте слота и падает в кучу */
+function dropBackFromSlot(tileIndex, slotIndex) {
+  const node = el.cubes.children[tileIndex];
+  const at = slotOffset(slotIndex);
+  node.classList.remove('is-used');
+  node.style.transition = '';
+  round.tiles[tileIndex].body = spawnBody(node, at);
+  draw();
 }
 
 function freeSlot(i) {
   const slot = round.slots[i];
   if (!slot.ch) return;
-  round.tiles[slot.tile].used = false;
+  const tileIndex = slot.tile;
+  round.tiles[tileIndex].used = false;
   round.slots[i] = { ch: null, tile: null, locked: false };
+  if (PHYSICS) dropBackFromSlot(tileIndex, i);
 }
 
 function hintsLeft() {
@@ -343,6 +542,7 @@ function solved() {
   el.boardHint.textContent = round.word;
   el.boardHint.className = 'board__hint is-good';
   el.flash.classList.add('is-on');
+  burstWord();
   cheer();
   el.live.textContent = `Верно: ${round.word}`;
   setTimeout(() => el.flash.classList.remove('is-on'), 500);
@@ -388,6 +588,7 @@ const celebrate = () => dropConfetti({ count: 26, speed: 2.2, spread: 96 });
 
 function finish() {
   clearInterval(ticker);
+  stopLoop();
   state.done = true;
   state.finishedAt = Date.now();
   save();
