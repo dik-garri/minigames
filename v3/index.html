@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3ECFF">
-<title>Мини-игры</title>
+<title>Мини-игры — v3</title>
 <meta name="description" content="Небольшие игры для праздников — открываются на телефоне по ссылке.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
 <style>
@@ -57,18 +57,6 @@
   .card__meta { margin: 14px 0 0; font-size: 13px; font-weight: 700; color: var(--accent-ink); }
   .card + .card { margin-top: 16px; }
   .cubes { display: flex; gap: 6px; margin-bottom: 14px; }
-  .bag-mini { position: relative; width: 44px; height: 40px; margin-bottom: 14px; }
-  .bag-mini__handle {
-    position: absolute; top: 0; left: 50%;
-    width: 24px; height: 12px; margin-left: -12px;
-    border: 4px solid #C89A5B; border-bottom: 0; border-radius: 14px 14px 0 0;
-  }
-  .bag-mini__body {
-    position: absolute; bottom: 0; left: 0;
-    width: 44px; height: 30px;
-    background: #FFF6E2; border-radius: 6px 6px 12px 12px;
-    box-shadow: 0 4px 0 #E8C68C;
-  }
   .cube {
     width: 34px; height: 34px;
     display: grid; place-items: center;
@@ -80,45 +68,28 @@
   .cube:nth-child(2) { transform: rotate(4deg); }
   .cube:nth-child(3) { transform: rotate(-5deg); }
   .cube:nth-child(4) { transform: rotate(3deg); }
-  .next {
-    margin: 22px 4px 0;
+  .note {
+    margin: -18px 0 26px;
     font-size: 15px; line-height: 1.45; color: var(--ink-soft);
   }
-  .next + .next { margin-top: 10px; }
-  .next a { color: var(--accent-ink); font-weight: 700; }
+  .note a { color: var(--accent-ink); font-weight: 700; }
   a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <p class="eyebrow">Открывается с телефона</p>
+    <p class="eyebrow">Версия 3 · для молодёжи</p>
     <h1>Мини-игры</h1>
+    <p class="note">Та же игра со словами, что и в <a href="../">первой версии</a>, только слова из христианской жизни.</p>
 
     <a class="card" href="words/">
       <div class="cubes" aria-hidden="true">
-        <span class="cube">С</span><span class="cube">Л</span><span class="cube">О</span><span class="cube">В</span>
+        <span class="cube">В</span><span class="cube">Е</span><span class="cube">Р</span><span class="cube">А</span>
       </div>
-      <div class="card__name">Детские слова</div>
-      <p class="card__desc">20 слов с перепутанными буквами. Собираем из кубиков на скорость — выигрывает самое короткое время.</p>
+      <div class="card__name">Слова веры</div>
+      <p class="card__desc">20 слов с перепутанными буквами: от «хвалы» до «благодати». Собираем из кубиков на скорость, выигрывает самое короткое время.</p>
       <p class="card__meta">Играть →</p>
     </a>
-
-    <a class="card" href="bag/">
-      <div class="bag-mini" aria-hidden="true">
-        <span class="bag-mini__handle"></span>
-        <span class="bag-mini__body"></span>
-      </div>
-      <div class="card__name">Что в маминой сумке?</div>
-      <p class="card__desc">Три минуты, чтобы вспомнить как можно больше детских вещей. Счёт считается сам — ведущему не нужно разбирать листочки.</p>
-      <p class="card__meta">Играть →</p>
-    </a>
-
-    <p class="next">
-      Есть <a href="v2/">версия 2</a>: те же правила, но кубики и вещи падают по-настоящему.
-    </p>
-    <p class="next">
-      Для молодёжной встречи — <a href="v3/">версия 3</a>: та же игра со словами, слова из христианской жизни.
-    </p>
   </div>
 </body>
 </html>
