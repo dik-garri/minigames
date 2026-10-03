@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Распечатка ведущего — молодёжная встреча</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+<style>
+  /* Строится из data.js: номера вопросов совпадают с экраном. */
+  body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    font: 15px/1.45 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #3A2B3F;
+    background: #fff;
+  }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  .sub { margin: 0 0 24px; color: #7A6B82; }
+  .sub button { font: inherit; font-weight: 700; color: #C22B45; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  h2 { margin: 28px 0 8px; padding-bottom: 4px; font-size: 19px; border-bottom: 2px solid #3A2B3F; }
+  .how { margin: 0 0 12px; color: #7A6B82; }
+  ol { margin: 0; padding-left: 26px; }
+  li { margin: 0 0 6px; break-inside: avoid; }
+  .opts, .task, .ref { color: #7A6B82; }
+  .ans { font-weight: 800; }
+  .tag { font-size: 12px; font-weight: 700; color: #C22B45; text-transform: uppercase; letter-spacing: .06em; }
+  .hero { margin: 0 0 12px; break-inside: avoid; }
+  .hero ol { padding-left: 22px; }
+  .hero li { margin: 0; }
+  .blitz { columns: 2; column-gap: 28px; }
+  @media (max-width: 600px) { .blitz { columns: 1; } }
+  @media print {
+    body { padding: 0; font-size: 12px; }
+    .sub button { display: none; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+  <h1>Распечатка ведущего</h1>
+  <p class="sub">Порядок и номера — как на экране. <button type="button" onclick="print()">Печать</button></p>
+
+  <h2>1. Найди своих</h2>
+  <p class="how">4 варианта — углы зала, 2 — половины. После каждого раунда 20–30 секунд на задание в группе.</p>
+  <ol id="find"></ol>
+
+  <h2>2. Кто я?</h2>
+  <p class="how">Подсказки от трудной к очевидной: 3, 2, 1 балл. Команда пишет ответ на листе и поднимает его один раз — ошибка даёт 0.</p>
+  <div id="heroes"></div>
+
+  <h2>3. Правда или ложь</h2>
+  <p class="how">Все стоят. Правда — руки вверх, ложь — руки крестом на груди. Ошибся — садишься. Последний стоящий побеждает.</p>
+  <ol id="truth"></ol>
+
+  <h2>4. Блиц</h2>
+  <p class="how">60 секунд на команду, вопросы идут подряд, «пас» — следующий. На экране виден номер вопроса.</p>
+  <ol class="blitz" id="blitz"></ol>
+
+<script src="data.js"></script>
+<script>
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+  const fill = (id, html) => { document.getElementById(id).innerHTML = html; };
+
+  fill('find', FIND.map((r) => `
+    <li>
+      ${r.reserve ? '<span class="tag">запас</span> ' : ''}${r.final ? '<span class="tag">финал</span> ' : ''}
+      <b>${esc(r.q)}</b>
+      ${r.opts ? `<span class="opts">— ${r.opts.map(esc).join(' / ')}</span>` : `<br>${esc(r.text)}`}
+      <br><span class="task">В группе: ${esc(r.task)}</span>
+    </li>`).join(''));
+
+  fill('heroes', HEROES.map((h, i) => `
+    <div class="hero">
+      ${i === HEROES_MAIN ? '<p class="tag">Запасные</p>' : ''}
+      <span class="ans">${i + 1}. ${esc(h.name)}</span>
+      <ol>${h.clues.map(([text, ref], k) => `<li>${3 - k} б. — ${esc(text)} <span class="ref">(${esc(ref)})</span></li>`).join('')}</ol>
+    </div>`).join(''));
+
+  fill('truth', TRUTH.map((s) => `
+    <li>${esc(s.s)} — <span class="ans">${s.ok ? 'Правда' : 'Ложь'}</span>.
+      <span class="ref">${esc(s.why)} (${esc(s.ref)})</span></li>`).join(''));
+
+  fill('blitz', BLITZ.map(([q, a]) => `<li>${esc(q)} — <span class="ans">${esc(a)}</span></li>`).join(''));
+</script>
+</body>
+</html>
