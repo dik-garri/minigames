@@ -56,11 +56,16 @@
   <p class="how">Подсказки от трудной к очевидной: 3, 2, 1 балл. Команда пишет ответ на листе и поднимает его один раз — ошибка даёт 0.</p>
   <div id="heroes"></div>
 
-  <h2>4. Правда или ложь</h2>
+  <h2>4. Слова</h2>
+  <p class="how">Один лист на стол, 5–10 минут. Из букв слова <b id="words-source"></b> — любые существительные, без имён и названий. Каждую букву — не больше раз, чем в слове: О и Т по три, С, Е и Ь по две, остальные по одной. Подсчёт: столы по очереди читают слова, у кого такое же — поднимают руку, все вычёркивают.</p>
+  <ul id="words-score"></ul>
+  <p class="how">Длинные слова, которые точно собираются, — если захочется удивить в конце: <span id="words-hints"></span>.</p>
+
+  <h2>5. Правда или ложь</h2>
   <p class="how">Все стоят. Правда — руки вверх, ложь — руки крестом на груди. Ошибся — садишься. Последний стоящий побеждает.</p>
   <ol id="truth"></ol>
 
-  <h2>5. Блиц</h2>
+  <h2>6. Блиц</h2>
   <p class="how">60 секунд на команду, вопросы идут подряд, «пас» — следующий. На экране виден номер вопроса.</p>
   <ol class="blitz" id="blitz"></ol>
 
@@ -87,6 +92,10 @@
       <br><span class="task">Пример: «${r.example.slice(0, -1).map(esc).join(', ')}, а я ${esc(r.example[r.example.length - 1])}»</span>
     </li>`).join(''));
   fill('snow-check', SNOW_CHECK.map((c) => `<li>${esc(c)}</li>`).join(''));
+
+  fill('words-source', esc(WORDS_SOURCE));
+  fill('words-score', WORDS_SCORE.map(([label, pts]) => `<li>${esc(label)} — <span class="ans">${pts}</span></li>`).join(''));
+  fill('words-hints', WORDS_HINTS.map(esc).join(', '));
 
   fill('heroes', HEROES.map((h, i) => `
     <div class="hero">

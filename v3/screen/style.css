@@ -197,7 +197,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 .tiles {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: calc(var(--u) * 1.6);
 }
 .tile {
@@ -214,7 +214,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   transition: transform .14s ease;
 }
 .tile:hover { transform: translateY(calc(var(--u) * -.3)); }
-.tile__name { font-size: calc(var(--u) * 2.4); font-weight: 800; }
+.tile__name { font-size: calc(var(--u) * 2.1); font-weight: 800; }
 .tile__desc { font-size: calc(var(--u) * 1.3); line-height: 1.35; color: var(--ink-soft); }
 .menu__foot {
   margin: calc(var(--u) * 3) 0 0;
@@ -486,6 +486,76 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   line-height: 1.3;
   font-weight: 700;
 }
+
+/* ——— Слова ——— */
+
+/* Кубик ужимается под длину слова, чтобы оно всегда шло одной строкой. */
+.letters {
+  --s: min(calc(var(--u) * 5.6), calc(var(--u) * 90 / var(--n) - var(--u) * .7));
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--u) * .7);
+  margin-bottom: calc(var(--u) * 3);
+}
+.letter {
+  display: grid;
+  place-items: center;
+  width: var(--s);
+  height: var(--s);
+  font-size: calc(var(--s) * .6);
+  font-weight: 800;
+  color: #4A3320;
+  background: var(--cube);
+  border-radius: 22%;
+  box-shadow: 0 calc(var(--u) * .5) 0 var(--cube-edge);
+  transform: rotate(var(--t));
+}
+.words__rules li { font-size: calc(var(--u) * 2.2); }
+.words__timer {
+  width: min(calc(var(--u) * 70), 100%);
+  margin: calc(var(--u) * 1) 0 0;
+}
+.words__timer .timer__num { font-size: calc(var(--u) * 9); min-width: 4ch; }
+.words__over {
+  margin: calc(var(--u) * 1) 0 0;
+  font-size: calc(var(--u) * 6);
+  font-weight: 800;
+  color: var(--accent-ink);
+  animation: pop .45s cubic-bezier(.2, 1.6, .4, 1);
+}
+.score-rules {
+  display: grid;
+  gap: calc(var(--u) * 1);
+  width: min(calc(var(--u) * 64), 100%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.score-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 2);
+  padding: calc(var(--u) * .7) calc(var(--u) * 1.2) calc(var(--u) * .7) calc(var(--u) * 2.4);
+  font-size: calc(var(--u) * 2.2);
+  font-weight: 700;
+  text-align: left;
+  background: var(--paper);
+  border-radius: calc(var(--u) * 1.6);
+  box-shadow: var(--shadow);
+}
+.score-rule b {
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 4);
+  height: calc(var(--u) * 4);
+  font-size: calc(var(--u) * 2.4);
+  color: #4A3320;
+  background: var(--cube);
+  border-radius: 22%;
+  box-shadow: 0 calc(var(--u) * .4) 0 var(--cube-edge);
+}
+.score-rules + .snow__task { font-size: calc(var(--u) * 2); }
 
 /* ——— Кто я? ——— */
 

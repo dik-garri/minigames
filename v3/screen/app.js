@@ -19,6 +19,8 @@ const fresh = () => ({
   snow: { i: 0, pick: 0 },
   // marks[персонаж][команда] = { at: на какой подсказке сдали лист, ok: null | true | false }
   who: { i: 0, step: 1, marks: {} },
+  // step: 0 — правила, 1 — пишут (endsAt 0 — время вышло), 2 — подсчёт
+  words: { step: 0, minutes: 7, endsAt: 0 },
   truth: { i: 0, shown: false },
   // turns[команда] = [{ q: номер вопроса, ok }]; cursor — следующий неиспользованный вопрос
   blitz: { phase: 'pick', team: null, cursor: 0, endsAt: 0, turns: {} }
@@ -130,6 +132,7 @@ function viewMenu() {
         ${tile('find', 'Найди своих', 'Знакомство и сбор команд')}
         ${tile('snow', 'Снежный ком', 'Один круг на весь зал')}
         ${tile('who', 'Кто я?', 'Персонаж по трём подсказкам')}
+        ${tile('words', 'Слова', 'Из слова «достопримечательность»')}
         ${tile('truth', 'Правда или ложь', 'Разминка для всего зала')}
         ${tile('blitz', 'Блиц', 'По минуте на команду')}
         ${tile('score', 'Счёт', 'Итог двух командных игр')}
@@ -308,7 +311,7 @@ function viewWho() {
   }).join('');
   const label = i < HEROES_MAIN ? `Персонаж ${i + 1} из ${HEROES_MAIN}` : `Запасной персонаж · ${i + 1 - HEROES_MAIN}`;
   const enough = reveal && i >= HEROES_MAIN - 1
-    ? '<button class="link" data-act="go" data-view="truth" type="button">Хватит — к «Правде или лжи» ⇥</button>'
+    ? '<button class="link" data-act="go" data-view="words" type="button">Хватит — к «Словам» ⇥</button>'
     : '';
   return frame('Кто я?', `
     <p class="kicker">${label} · баллы за подсказку слева</p>
@@ -359,11 +362,105 @@ function navWho(d) {
   if (d > 0) {
     if (w.step < 4) w.step++;
     else if (w.i < HEROES.length - 1) { w.i++; w.step = 1; }
-    else return go('truth');
+    else return go('words');
   } else if (w.step > 1) w.step--;
   else if (w.i > 0) { w.i--; w.step = 4; }
   save();
   render();
+}
+
+/* ——— Слова ——— */
+
+const LETTER_COUNT = [...WORDS_SOURCE].reduce((acc, ch) => ({ ...acc, [ch]: (acc[ch] || 0) + 1 }), {});
+const TIMES = { 2: 'по две', 3: 'по три', 4: 'по четыре', 5: 'по пять' };
+
+// «О и Т — по три; С, Е и Ь — по две»: буквы, которых в слове больше одной, от частых к редким.
+const listAnd = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} и ${xs[xs.length - 1]}` : xs[0]);
+const REPEATS = Object.entries(
+  Object.keys(LETTER_COUNT).filter((ch) => LETTER_COUNT[ch] > 1)
+    .reduce((acc, ch) => ({ ...acc, [LETTER_COUNT[ch]]: [...(acc[LETTER_COUNT[ch]] || []), ch] }), {})
+).sort(([a], [b]) => b - a).map(([n, chars]) => `${listAnd(chars)} — ${TIMES[n]}`);
+
+function wordCubes() {
+  return `<div class="letters" style="--n: ${WORDS_SOURCE.length}">${[...WORDS_SOURCE].map((ch, k) => `
+    <span class="letter" style="--t: ${(k % 3 - 1) * 3}deg">${ch}</span>`).join('')}</div>`;
+}
+
+function viewWords() {
+  const { step, minutes, endsAt } = state.words;
+
+  if (step === 0) {
+    const pick = WORDS_MINUTES.map((m) => `
+      <button class="btn ${m === minutes ? '' : 'btn--ghost'}" data-act="words-min" data-min="${m}" type="button">${m} мин</button>`).join('');
+    return frame('Слова', `
+      <p class="kicker">Один лист и ручка на стол</p>
+      ${wordCubes()}
+      <ol class="snow__rules words__rules">
+        <li><span>Составьте из букв этого слова как можно больше слов.</span></li>
+        <li><span>Каждую букву — не больше раз, чем в слове: <b>${REPEATS.join('; ')}</b>; остальные по одной.</span></li>
+        <li><span>Только существительные, без имён и названий. Например: ${WORDS_EXAMPLE.join(', ')}.</span></li>
+      </ol>`,
+    `${pick}
+     <button class="btn btn--go" data-act="words-start" type="button">Старт</button>`);
+  }
+
+  if (step === 1) {
+    const timer = endsAt
+      ? `<div class="timer words__timer" id="timer">
+          <span class="timer__num" id="timer-num"></span>
+          <span class="timer__bar"><i id="timer-fill"></i></span>
+        </div>`
+      : '<p class="words__over">Время! Ручки вниз</p>';
+    return frame('Слова', `
+      <p class="kicker">Только существительные · ${REPEATS.join(' · ')}</p>
+      ${wordCubes()}
+      ${timer}`,
+    endsAt
+      ? '<button class="link" data-act="words-stop" type="button">Закончить раньше</button>'
+      : '<button class="btn" data-act="words-count" type="button">К подсчёту →</button>');
+  }
+
+  const rows = WORDS_SCORE.map(([label, pts]) => `
+    <li class="score-rule"><span>${label}</span><b>${pts}</b></li>`).join('');
+  return frame('Слова', `
+    <p class="kicker">Подсчёт</p>
+    <ol class="score-rules">${rows}</ol>
+    <p class="snow__task">Столы по очереди читают свои слова. У кого такое же — поднимают руку, и все вычёркивают его у себя. Спорное слово решает ведущий.</p>`,
+  '<button class="btn" data-act="go" data-view="truth" type="button">К «Правде или лжи» →</button>');
+}
+
+function startWords() {
+  wakeAudio();
+  Object.assign(state.words, { step: 1, endsAt: Date.now() + state.words.minutes * 60 * 1000 });
+  save();
+  render();
+}
+
+function endWords() {
+  state.words.endsAt = 0;
+  beep();
+  save();
+  render();
+}
+
+// Пока пишут, стрелки ничего не делают: случайный клик кликера не сорвёт раунд.
+function navWords(d) {
+  const w = state.words;
+  if (w.step === 0) {
+    if (d > 0) startWords();
+    else go('who');
+  } else if (w.step === 1) {
+    if (w.endsAt) return;
+    if (d > 0) w.step = 2;
+    else w.step = 0;
+    save();
+    render();
+  } else if (d > 0) go('truth');
+  else {
+    w.step = 1;
+    save();
+    render();
+  }
 }
 
 /* ——— Правда или ложь ——— */
@@ -572,10 +669,10 @@ function viewScore() {
 
 const VIEWS = {
   menu: viewMenu, teams: viewTeams, find: viewFind, snow: viewSnow, who: viewWho,
-  truth: viewTruth, blitz: viewBlitz, score: viewScore
+  words: viewWords, truth: viewTruth, blitz: viewBlitz, score: viewScore
 };
 const NAV = {
-  find: navFind, snow: navSnow, who: navWho, truth: navTruth, blitz: navBlitz,
+  find: navFind, snow: navSnow, who: navWho, words: navWords, truth: navTruth, blitz: navBlitz,
   teams: (d) => go(d > 0 ? 'snow' : 'find')
 };
 
@@ -583,7 +680,9 @@ function render() {
   if (!VIEWS[state.view]) state.view = 'menu';
   app.dataset.view = state.view;
   app.innerHTML = VIEWS[state.view]();
+  const w = state.words;
   if (state.view === 'blitz' && state.blitz.phase === 'run') startTicker(state.blitz.endsAt, BLITZ_MS, finishBlitz);
+  else if (state.view === 'words' && w.step === 1 && w.endsAt) startTicker(w.endsAt, w.minutes * 60 * 1000, endWords);
   else stopTicker();
 }
 
@@ -617,6 +716,16 @@ app.addEventListener('click', (e) => {
       return render();
     case 'snow-pick': return rerollSnow();
     case 'snow-stop': return stopSnow();
+    case 'words-min':
+      state.words.minutes = Number(btn.dataset.min);
+      save();
+      return render();
+    case 'words-start': return startWords();
+    case 'words-stop': return endWords();
+    case 'words-count':
+      state.words.step = 2;
+      save();
+      return render();
     case 'snow-unstop':
       snowStop = null;
       return render();
