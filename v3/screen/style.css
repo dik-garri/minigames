@@ -401,33 +401,63 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   text-transform: uppercase;
   color: var(--accent-ink);
 }
-.snow__example {
+.route {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--u) * 1.4);
-  margin-top: calc(var(--u) * 2.4);
+  gap: calc(var(--u) * .8);
+  margin-bottom: calc(var(--u) * 2.4);
 }
+.route__team {
+  padding: calc(var(--u) * .6) calc(var(--u) * 1.6);
+  font-size: calc(var(--u) * 1.8);
+  font-weight: 800;
+  color: #fff;
+  background: var(--c);
+  border-radius: 99px;
+}
+.route__arrow { font-size: calc(var(--u) * 1.8); font-weight: 800; color: var(--ink-soft); }
 .bubble {
-  font-size: calc(var(--u) * 1.7);
+  display: block;
+  max-width: calc(var(--u) * 84);
+  margin: calc(var(--u) * 2.4) 0 0;
+  font-size: calc(var(--u) * 1.9);
   font-weight: 700;
   color: var(--ink-soft);
   background: rgba(255, 255, 255, .55);
   box-shadow: none;
 }
-.snow__arrow { font-size: calc(var(--u) * 2.4); font-weight: 800; color: var(--ink-soft); }
-.timer--small {
-  width: min(calc(var(--u) * 60), 100%);
-  margin: calc(var(--u) * 3) 0 0;
+.bubble b { color: var(--ink); }
+.bubble small { display: block; margin-bottom: calc(var(--u) * .3); }
+
+.stop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 2.4);
+  padding: calc(var(--u) * 6);
+  color: #fff;
+  background: var(--accent-ink);
+  border: 0;
+  cursor: pointer;
+  animation: pop .3s ease;
 }
-.timer--small .timer__num { font-size: calc(var(--u) * 3); }
-.timer--small .timer__bar { height: calc(var(--u) * 1); }
-.snow__over {
-  margin: calc(var(--u) * 3) 0 0;
-  font-size: calc(var(--u) * 2.4);
+.stop__word {
+  font-size: calc(var(--u) * 14);
+  line-height: 1;
   font-weight: 800;
-  color: var(--accent-ink);
-  animation: pop .45s cubic-bezier(.2, 1.6, .4, 1);
+  letter-spacing: -.02em;
+}
+.stop__q {
+  max-width: calc(var(--u) * 80);
+  font-size: calc(var(--u) * 4.4);
+  line-height: 1.15;
+  font-weight: 800;
 }
 .snow__check {
   display: grid;

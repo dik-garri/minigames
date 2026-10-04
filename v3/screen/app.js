@@ -4,7 +4,6 @@
 
 const SAVE_KEY = 'faith-screen-v3';
 const BLITZ_MS = 60 * 1000;   // время одной команды в блице
-const SNOW_MS = 2 * 60 * 1000;   // ориентир на круг «Снежного кома»
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 6;
 const NEXT_KEYS = ['ArrowRight', 'PageDown', ' ', 'Enter'];   // кликеры шлют PageDown / PageUp
@@ -16,8 +15,8 @@ const fresh = () => ({
   view: 'menu',
   teams: ['Команда 1', 'Команда 2', 'Команда 3', 'Команда 4'],
   find: { i: 0, step: 0 },
-  // i: 0 — правила, 1…SNOW.length — круги, дальше проверка памяти; endsAt — конец круга, 0 — время вышло
-  snow: { i: 0, endsAt: 0, pick: 0 },
+  // i: 0 — правила, 1…SNOW.length — круги, дальше проверка памяти; pick — кто встаёт на проверке
+  snow: { i: 0, pick: 0 },
   // marks[персонаж][команда] = { at: на какой подсказке сдали лист, ok: null | true | false }
   who: { i: 0, step: 1, marks: {} },
   truth: { i: 0, shown: false },
@@ -28,6 +27,7 @@ const fresh = () => ({
 let state = load();
 let ticker = null;
 let audio = null;
+let snowStop = null;   // вопрос «Стоп!» поверх круга, не сохраняется
 
 function load() {
   try {
@@ -69,6 +69,7 @@ const total = (t) => whoPoints(t) + blitzPoints(t);
 
 function go(view) {
   state.view = view;
+  snowStop = null;
   save();
   render();
 }
@@ -127,7 +128,7 @@ function viewMenu() {
       <h1 class="menu__title">Игры</h1>
       <div class="tiles">
         ${tile('find', 'Найди своих', 'Знакомство и сбор команд')}
-        ${tile('snow', 'Снежный ком', 'Знакомство за столами')}
+        ${tile('snow', 'Снежный ком', 'Один круг на весь зал')}
         ${tile('who', 'Кто я?', 'Персонаж по трём подсказкам')}
         ${tile('truth', 'Правда или ложь', 'Разминка для всего зала')}
         ${tile('blitz', 'Блиц', 'По минуте на команду')}
@@ -159,7 +160,7 @@ function viewTeams() {
         <button class="btn btn--ghost" data-act="team-add" type="button" ${n >= MAX_TEAMS ? 'disabled' : ''}>+ команда</button>
       </div>
     </div>`,
-  '<button class="btn" data-act="go" data-view="who" type="button">К игре «Кто я?» →</button>');
+  '<button class="btn" data-act="go" data-view="snow" type="button">К «Снежному кому» →</button>');
 }
 
 /* ——— Найди своих ——— */
@@ -185,7 +186,7 @@ function viewFind() {
     ${body}
     ${task}`,
   i === FIND_FINAL
-    ? '<button class="btn" data-act="go" data-view="snow" type="button">За столами — «Снежный ком» →</button>'
+    ? '<button class="btn" data-act="go" data-view="teams" type="button">Вписать названия столов →</button>'
     : '<button class="link" data-act="find-final" type="button">К финалу ⇥</button>');
 }
 
@@ -194,7 +195,7 @@ function navFind(d) {
   if (d > 0) {
     if (f.step === 0) f.step = 1;
     else if (f.i < FIND.length - 1) { f.i++; f.step = 0; }
-    else return go('snow');
+    else return go('teams');
   } else if (f.step === 1) f.step = 0;
   else if (f.i > 0) { f.i--; f.step = 1; }
   save();
@@ -203,55 +204,59 @@ function navFind(d) {
 
 /* ——— Снежный ком ——— */
 
-const DIRS = { cw: '↻ по часовой стрелке', ccw: '↺ против часовой' };
+const DIRS = { cw: '↻ по часовой', ccw: '↺ против часовой' };
+
+// Каждый круг начинает следующий стол: первыми и последними оказываются разные столы.
+const snowRoute = (r) => state.teams.map((_, k) => (k + r) % state.teams.length);
 
 function viewSnow() {
-  const { i, endsAt, pick } = state.snow;
+  const { i, pick } = state.snow;
   const round = SNOW[i - 1];
-  const toCheck = '<button class="link" data-act="snow-check" type="button">К проверке памяти ⇥</button>';
 
   if (i === 0) {
     return frame('Снежный ком', `
-      <p class="kicker">Все столы играют одновременно</p>
+      <p class="kicker">Один круг на весь зал</p>
       <h2 class="snow__title">Снежный ком</h2>
       <ol class="snow__rules">
-        <li><span>Первый называет своё имя и факт по теме круга.</span></li>
-        <li><span>Каждый следующий повторяет <b>всех</b>, кто говорил до него, и добавляет себя.</span></li>
+        <li><span>Цепочка идёт стол за столом, внутри стола — по кругу.</span></li>
+        <li><span>Каждый повторяет <b>${SNOW_BACK} предыдущих</b> — имя и что они сказали, — и добавляет себя.</span></li>
         <li><span>Запнулся — стол подсказывает только жестами, без слов. Никто не выбывает.</span></li>
-        <li><span>Закончили круг — весь стол встаёт и хором: «Снежный ком!»</span></li>
+        <li><span>Слушайте всех: в любой момент ведущий может крикнуть <b>«Стоп!»</b></span></li>
       </ol>`,
     '<p class="foot__hint">→ первый круг</p>');
   }
 
   if (round) {
     const label = i <= SNOW_MAIN ? `Круг ${i} из ${SNOW_MAIN}` : 'Запасной круг';
-    const timer = endsAt
-      ? `<div class="timer timer--small" id="timer">
-          <span class="timer__num" id="timer-num"></span>
-          <span class="timer__bar"><i id="timer-fill"></i></span>
-        </div>`
-      : '<p class="snow__over">Время! Договариваем круг до конца</p>';
+    const route = snowRoute(i - 1).map((t) => `
+      <span class="route__team" style="${teamColor(t)}">${esc(teamName(t))}</span>`).join('<span class="route__arrow">→</span>');
+    const chain = round.example.slice(0, -1).join(', ');
+    const me = round.example[round.example.length - 1];
+    const stop = snowStop
+      ? `<button class="stop" data-act="snow-unstop" type="button">
+          <span class="stop__word">Стоп!</span>
+          <span class="stop__q">${snowStop}</span>
+        </button>`
+      : '';
     return frame('Снежный ком', `
       <p class="kicker">${label}</p>
       <h2 class="snow__theme">${round.theme}</h2>
+      <div class="route">${route}</div>
       <div class="snow__meta">
-        <span class="pill"><small>Начинает</small>${round.starter}</span>
-        <span class="pill"><small>Дальше</small>${DIRS[round.dir]}</span>
+        <span class="pill"><small>Начинает за первым столом</small>${round.starter}</span>
+        <span class="pill"><small>Внутри стола</small>${DIRS[round.dir]}</span>
       </div>
-      <div class="snow__example">
-        <span class="bubble"><small>1-й</small>«${round.example[0]}»</span>
-        <span class="snow__arrow">→</span>
-        <span class="bubble"><small>2-й</small>«${round.example[1]}»</span>
-      </div>
-      ${timer}`,
-    toCheck);
+      <p class="bubble"><small>Пример</small>«${chain}, <b>а я ${me}</b>»</p>
+      ${stop}`,
+    `<button class="btn btn--go" data-act="snow-stop" type="button">Стоп! <kbd>S</kbd></button>
+     <button class="link" data-act="snow-check" type="button">К проверке памяти ⇥</button>`);
   }
 
   return frame('Снежный ком', `
     <p class="kicker">Проверка памяти</p>
     <button class="snow__check" data-act="snow-pick" type="button">${SNOW_CHECK[pick]}<small>↻ другой</small></button>
-    <p class="snow__task">Он называет всех за своим столом — имя и один факт о каждом из любого круга. Стол подсказывает только жестами.</p>`,
-  '<button class="btn" data-act="go" data-view="teams" type="button">Вписать названия команд →</button>');
+    <p class="snow__task">Он называет всех за своим столом — и по одному человеку с каждого другого стола. Стол подсказывает только жестами.</p>`,
+  '<button class="btn" data-act="go" data-view="who" type="button">К игре «Кто я?» →</button>');
 }
 
 function rerollSnow() {
@@ -263,26 +268,24 @@ function rerollSnow() {
   render();
 }
 
-function navSnow(d) {
-  const s = state.snow;
-  const last = SNOW.length + 1;   // экран проверки памяти
-  if (d > 0) {
-    if (s.i === last) return go('teams');
-    s.i++;
-  } else if (s.i > 0) s.i--;
-  else return go('find');
-  // на каждом круге таймер запускается заново, звук будим нажатием
-  if (SNOW[s.i - 1]) {
-    wakeAudio();
-    s.endsAt = Date.now() + SNOW_MS;
-  }
-  save();
+// Спрашиваем дальше, чем повторяет цепочка: от SNOW_BACK + 1 до SNOW_BACK + 4 человек назад.
+function stopSnow() {
+  const n = SNOW_BACK + 1 + Math.floor(Math.random() * 4);
+  snowStop = SNOW_STOP[Math.floor(Math.random() * SNOW_STOP.length)](n);
   render();
 }
 
-function endSnowRound() {
-  state.snow.endsAt = 0;
-  beep();
+function navSnow(d) {
+  if (snowStop) {
+    snowStop = null;
+    return render();
+  }
+  const s = state.snow;
+  if (d > 0) {
+    if (s.i === SNOW.length + 1) return go('who');
+    s.i++;
+  } else if (s.i > 0) s.i--;
+  else return go('teams');
   save();
   render();
 }
@@ -573,16 +576,14 @@ const VIEWS = {
 };
 const NAV = {
   find: navFind, snow: navSnow, who: navWho, truth: navTruth, blitz: navBlitz,
-  teams: (d) => go(d > 0 ? 'who' : 'snow')
+  teams: (d) => go(d > 0 ? 'snow' : 'find')
 };
 
 function render() {
   if (!VIEWS[state.view]) state.view = 'menu';
   app.dataset.view = state.view;
   app.innerHTML = VIEWS[state.view]();
-  const snow = state.snow;
   if (state.view === 'blitz' && state.blitz.phase === 'run') startTicker(state.blitz.endsAt, BLITZ_MS, finishBlitz);
-  else if (state.view === 'snow' && SNOW[snow.i - 1] && snow.endsAt) startTicker(snow.endsAt, SNOW_MS, endSnowRound);
   else stopTicker();
 }
 
@@ -610,10 +611,15 @@ app.addEventListener('click', (e) => {
       save();
       return render();
     case 'snow-check':
-      state.snow = { i: SNOW.length + 1, endsAt: 0, pick: state.snow.pick };
+      state.snow.i = SNOW.length + 1;
+      snowStop = null;
       save();
       return render();
     case 'snow-pick': return rerollSnow();
+    case 'snow-stop': return stopSnow();
+    case 'snow-unstop':
+      snowStop = null;
+      return render();
     case 'who-team': return toggleWho(t);
     case 'blitz-pick': return pickBlitz(t);
     case 'blitz-back':
@@ -645,7 +651,12 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (e.code === 'KeyF') return toggleFullscreen();   // по коду клавиши — работает и в русской раскладке
-  if (e.key === 'Escape') return go('menu');
+  if (e.key === 'Escape') {
+    if (!snowStop) return go('menu');
+    snowStop = null;
+    return render();
+  }
+  if (e.code === 'KeyS' && state.view === 'snow' && SNOW[state.snow.i - 1]) return stopSnow();
   if (/^[1-6]$/.test(e.key)) {
     const t = Number(e.key) - 1;
     if (t >= state.teams.length) return;
