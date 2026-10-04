@@ -329,6 +329,134 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   opacity: .6;
 }
 
+/* ——— Снежный ком ——— */
+
+.snow__title {
+  margin: 0 0 calc(var(--u) * 3);
+  font-size: calc(var(--u) * 6);
+  line-height: 1;
+  font-weight: 800;
+}
+.snow__rules {
+  display: grid;
+  gap: calc(var(--u) * 1.2);
+  max-width: calc(var(--u) * 76);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rule;
+  text-align: left;
+}
+.snow__rules li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 1.6);
+  font-size: calc(var(--u) * 2.4);
+  line-height: 1.25;
+  font-weight: 700;
+  counter-increment: rule;
+}
+.snow__rules li::before {
+  content: counter(rule);
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 4.4);
+  height: calc(var(--u) * 4.4);
+  font-size: calc(var(--u) * 2.2);
+  font-weight: 800;
+  color: #4A3320;
+  background: var(--cube);
+  border-radius: 22%;
+  box-shadow: 0 calc(var(--u) * .4) 0 var(--cube-edge);
+}
+.snow__rules b { color: var(--accent-ink); }
+
+.snow__theme {
+  margin: 0 0 calc(var(--u) * 2.4);
+  font-size: calc(var(--u) * 5.4);
+  line-height: 1.1;
+  font-weight: 800;
+}
+.snow__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--u) * 1.4);
+}
+.pill, .bubble {
+  display: grid;
+  gap: calc(var(--u) * .3);
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 2.4);
+  font-size: calc(var(--u) * 2.2);
+  line-height: 1.2;
+  font-weight: 800;
+  background: var(--paper);
+  border-radius: calc(var(--u) * 1.6);
+  box-shadow: var(--shadow);
+}
+.pill small, .bubble small {
+  font-size: calc(var(--u) * 1.1);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.snow__example {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 1.4);
+  margin-top: calc(var(--u) * 2.4);
+}
+.bubble {
+  font-size: calc(var(--u) * 1.7);
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .55);
+  box-shadow: none;
+}
+.snow__arrow { font-size: calc(var(--u) * 2.4); font-weight: 800; color: var(--ink-soft); }
+.timer--small {
+  width: min(calc(var(--u) * 60), 100%);
+  margin: calc(var(--u) * 3) 0 0;
+}
+.timer--small .timer__num { font-size: calc(var(--u) * 3); }
+.timer--small .timer__bar { height: calc(var(--u) * 1); }
+.snow__over {
+  margin: calc(var(--u) * 3) 0 0;
+  font-size: calc(var(--u) * 2.4);
+  font-weight: 800;
+  color: var(--accent-ink);
+  animation: pop .45s cubic-bezier(.2, 1.6, .4, 1);
+}
+.snow__check {
+  display: grid;
+  gap: calc(var(--u) * 1);
+  max-width: calc(var(--u) * 80);
+  padding: calc(var(--u) * 3) calc(var(--u) * 4);
+  font-size: calc(var(--u) * 4.4);
+  line-height: 1.15;
+  font-weight: 800;
+  background: var(--paper);
+  border: 0;
+  border-radius: calc(var(--u) * 2.4);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  animation: pop .35s ease;
+}
+.snow__check small {
+  font-size: calc(var(--u) * 1.3);
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.snow__task {
+  max-width: calc(var(--u) * 70);
+  margin: calc(var(--u) * 3) 0 0;
+  font-size: calc(var(--u) * 2.4);
+  line-height: 1.3;
+  font-weight: 700;
+}
+
 /* ——— Кто я? ——— */
 
 .clues {

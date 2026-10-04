@@ -4,6 +4,7 @@
 
 const SAVE_KEY = 'faith-screen-v3';
 const BLITZ_MS = 60 * 1000;   // время одной команды в блице
+const SNOW_MS = 2 * 60 * 1000;   // ориентир на круг «Снежного кома»
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 6;
 const NEXT_KEYS = ['ArrowRight', 'PageDown', ' ', 'Enter'];   // кликеры шлют PageDown / PageUp
@@ -15,6 +16,8 @@ const fresh = () => ({
   view: 'menu',
   teams: ['Команда 1', 'Команда 2', 'Команда 3', 'Команда 4'],
   find: { i: 0, step: 0 },
+  // i: 0 — правила, 1…SNOW.length — круги, дальше проверка памяти; endsAt — конец круга, 0 — время вышло
+  snow: { i: 0, endsAt: 0, pick: 0 },
   // marks[персонаж][команда] = { at: на какой подсказке сдали лист, ok: null | true | false }
   who: { i: 0, step: 1, marks: {} },
   truth: { i: 0, shown: false },
@@ -124,7 +127,7 @@ function viewMenu() {
       <h1 class="menu__title">Игры</h1>
       <div class="tiles">
         ${tile('find', 'Найди своих', 'Знакомство и сбор команд')}
-        ${tile('teams', 'Команды', `${n} ${plural(n, 'команда', 'команды', 'команд')} — вписать названия`)}
+        ${tile('snow', 'Снежный ком', 'Знакомство за столами')}
         ${tile('who', 'Кто я?', 'Персонаж по трём подсказкам')}
         ${tile('truth', 'Правда или ложь', 'Разминка для всего зала')}
         ${tile('blitz', 'Блиц', 'По минуте на команду')}
@@ -132,6 +135,7 @@ function viewMenu() {
       </div>
       <p class="menu__foot">
         F — во весь экран, листать стрелками, кликером или мышью.
+        <button class="link" data-act="go" data-view="teams" type="button">${n} ${plural(n, 'команда', 'команды', 'команд')} — названия</button> ·
         <a href="print.html" target="_blank">Распечатка для ведущего</a> ·
         <button class="link" data-act="reset" type="button">Обнулить счёт</button>
       </p>
@@ -181,7 +185,7 @@ function viewFind() {
     ${body}
     ${task}`,
   i === FIND_FINAL
-    ? '<button class="btn" data-act="go" data-view="teams" type="button">Вписать названия команд →</button>'
+    ? '<button class="btn" data-act="go" data-view="snow" type="button">За столами — «Снежный ком» →</button>'
     : '<button class="link" data-act="find-final" type="button">К финалу ⇥</button>');
 }
 
@@ -190,9 +194,95 @@ function navFind(d) {
   if (d > 0) {
     if (f.step === 0) f.step = 1;
     else if (f.i < FIND.length - 1) { f.i++; f.step = 0; }
-    else return go('teams');
+    else return go('snow');
   } else if (f.step === 1) f.step = 0;
   else if (f.i > 0) { f.i--; f.step = 1; }
+  save();
+  render();
+}
+
+/* ——— Снежный ком ——— */
+
+const DIRS = { cw: '↻ по часовой стрелке', ccw: '↺ против часовой' };
+
+function viewSnow() {
+  const { i, endsAt, pick } = state.snow;
+  const round = SNOW[i - 1];
+  const toCheck = '<button class="link" data-act="snow-check" type="button">К проверке памяти ⇥</button>';
+
+  if (i === 0) {
+    return frame('Снежный ком', `
+      <p class="kicker">Все столы играют одновременно</p>
+      <h2 class="snow__title">Снежный ком</h2>
+      <ol class="snow__rules">
+        <li><span>Первый называет своё имя и факт по теме круга.</span></li>
+        <li><span>Каждый следующий повторяет <b>всех</b>, кто говорил до него, и добавляет себя.</span></li>
+        <li><span>Запнулся — стол подсказывает только жестами, без слов. Никто не выбывает.</span></li>
+        <li><span>Закончили круг — весь стол встаёт и хором: «Снежный ком!»</span></li>
+      </ol>`,
+    '<p class="foot__hint">→ первый круг</p>');
+  }
+
+  if (round) {
+    const label = i <= SNOW_MAIN ? `Круг ${i} из ${SNOW_MAIN}` : 'Запасной круг';
+    const timer = endsAt
+      ? `<div class="timer timer--small" id="timer">
+          <span class="timer__num" id="timer-num"></span>
+          <span class="timer__bar"><i id="timer-fill"></i></span>
+        </div>`
+      : '<p class="snow__over">Время! Договариваем круг до конца</p>';
+    return frame('Снежный ком', `
+      <p class="kicker">${label}</p>
+      <h2 class="snow__theme">${round.theme}</h2>
+      <div class="snow__meta">
+        <span class="pill"><small>Начинает</small>${round.starter}</span>
+        <span class="pill"><small>Дальше</small>${DIRS[round.dir]}</span>
+      </div>
+      <div class="snow__example">
+        <span class="bubble"><small>1-й</small>«${round.example[0]}»</span>
+        <span class="snow__arrow">→</span>
+        <span class="bubble"><small>2-й</small>«${round.example[1]}»</span>
+      </div>
+      ${timer}`,
+    toCheck);
+  }
+
+  return frame('Снежный ком', `
+    <p class="kicker">Проверка памяти</p>
+    <button class="snow__check" data-act="snow-pick" type="button">${SNOW_CHECK[pick]}<small>↻ другой</small></button>
+    <p class="snow__task">Он называет всех за своим столом — имя и один факт о каждом из любого круга. Стол подсказывает только жестами.</p>`,
+  '<button class="btn" data-act="go" data-view="teams" type="button">Вписать названия команд →</button>');
+}
+
+function rerollSnow() {
+  const s = state.snow;
+  let next = s.pick;
+  while (next === s.pick) next = Math.floor(Math.random() * SNOW_CHECK.length);
+  s.pick = next;
+  save();
+  render();
+}
+
+function navSnow(d) {
+  const s = state.snow;
+  const last = SNOW.length + 1;   // экран проверки памяти
+  if (d > 0) {
+    if (s.i === last) return go('teams');
+    s.i++;
+  } else if (s.i > 0) s.i--;
+  else return go('find');
+  // на каждом круге таймер запускается заново, звук будим нажатием
+  if (SNOW[s.i - 1]) {
+    wakeAudio();
+    s.endsAt = Date.now() + SNOW_MS;
+  }
+  save();
+  render();
+}
+
+function endSnowRound() {
+  state.snow.endsAt = 0;
+  beep();
   save();
   render();
 }
@@ -428,13 +518,20 @@ function navBlitz(d) {
   else if (b.phase === 'done' && d > 0) { b.phase = 'pick'; save(); render(); }
 }
 
-function startTicker() {
+/* Один таймер на страницу: в блице секунды, в «Снежном коме» минуты. */
+function startTicker(endsAt, total, onEnd) {
   stopTicker();
   const tick = () => {
-    const left = state.blitz.endsAt - Date.now();
-    if (left <= 0) return finishBlitz();
-    document.getElementById('timer-num').textContent = Math.ceil(left / 1000);
-    document.getElementById('timer-fill').style.transform = `scaleX(${left / BLITZ_MS})`;
+    const left = endsAt - Date.now();
+    if (left <= 0) {
+      stopTicker();
+      return onEnd();
+    }
+    const sec = Math.ceil(left / 1000);
+    document.getElementById('timer-num').textContent = total > 60 * 1000
+      ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+      : sec;
+    document.getElementById('timer-fill').style.transform = `scaleX(${left / total})`;
     document.getElementById('timer').classList.toggle('is-hurry', left <= 10000);
   };
   tick();
@@ -471,19 +568,21 @@ function viewScore() {
 /* ——— рендер и ввод ——— */
 
 const VIEWS = {
-  menu: viewMenu, teams: viewTeams, find: viewFind, who: viewWho,
+  menu: viewMenu, teams: viewTeams, find: viewFind, snow: viewSnow, who: viewWho,
   truth: viewTruth, blitz: viewBlitz, score: viewScore
 };
 const NAV = {
-  find: navFind, who: navWho, truth: navTruth, blitz: navBlitz,
-  teams: (d) => go(d > 0 ? 'who' : 'find')
+  find: navFind, snow: navSnow, who: navWho, truth: navTruth, blitz: navBlitz,
+  teams: (d) => go(d > 0 ? 'who' : 'snow')
 };
 
 function render() {
   if (!VIEWS[state.view]) state.view = 'menu';
   app.dataset.view = state.view;
   app.innerHTML = VIEWS[state.view]();
-  if (state.view === 'blitz' && state.blitz.phase === 'run') startTicker();
+  const snow = state.snow;
+  if (state.view === 'blitz' && state.blitz.phase === 'run') startTicker(state.blitz.endsAt, BLITZ_MS, finishBlitz);
+  else if (state.view === 'snow' && SNOW[snow.i - 1] && snow.endsAt) startTicker(snow.endsAt, SNOW_MS, endSnowRound);
   else stopTicker();
 }
 
@@ -510,6 +609,11 @@ app.addEventListener('click', (e) => {
       state.find = { i: FIND_FINAL, step: 0 };
       save();
       return render();
+    case 'snow-check':
+      state.snow = { i: SNOW.length + 1, endsAt: 0, pick: state.snow.pick };
+      save();
+      return render();
+    case 'snow-pick': return rerollSnow();
     case 'who-team': return toggleWho(t);
     case 'blitz-pick': return pickBlitz(t);
     case 'blitz-back':
