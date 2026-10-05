@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3ECFF">
 <title>Мини-игры</title>
-<meta name="description" content="Небольшие игры для праздников — открываются на телефоне по ссылке.">
+<meta name="description" content="Небольшие игры для праздников и встреч: с телефона и для проектора.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
 <style>
   :root {
@@ -80,23 +80,80 @@
   .cube:nth-child(2) { transform: rotate(4deg); }
   .cube:nth-child(3) { transform: rotate(-5deg); }
   .cube:nth-child(4) { transform: rotate(3deg); }
-  .next {
-    margin: 22px 4px 0;
-    font-size: 15px; line-height: 1.45; color: var(--ink-soft);
+  .card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
   }
-  .next + .next { margin-top: 10px; }
-  .next a { color: var(--accent-ink); font-weight: 700; }
+  .card__head .cubes, .card__head .bag-mini { margin-bottom: 0; }
+  /* Пометка темы: для какого праздника готовилась игра */
+  .tag {
+    flex: none;
+    padding: 4px 10px;
+    font-size: 12px; font-weight: 800;
+    letter-spacing: .04em;
+    border-radius: 99px;
+  }
+  .tag--youth { color: #2F5E9E; background: #E4EEFB; }
+  .tag--baby  { color: #B0304A; background: #FFE3E8; }
+  .section {
+    margin: 34px 4px 4px;
+    font-size: 13px; font-weight: 800;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .section:first-of-type { margin-top: 0; }
+  .section__hint { margin: 0 4px 14px; font-size: 14px; color: var(--ink-soft); }
+  .screen-mini { position: relative; width: 46px; height: 38px; }
+  .screen-mini__face {
+    position: absolute; top: 0; left: 0;
+    width: 46px; height: 30px;
+    background: #FFF6E2; border-radius: 6px;
+    box-shadow: 0 4px 0 #E8C68C;
+  }
+  .screen-mini__face::after {
+    content: '';
+    position: absolute; left: 9px; top: 9px;
+    width: 28px; height: 4px; border-radius: 2px;
+    background: #E8C68C;
+    box-shadow: 0 7px 0 #E8C68C;
+  }
+  .screen-mini__leg {
+    position: absolute; bottom: 0; left: 50%;
+    width: 4px; height: 8px; margin-left: -2px;
+    background: #C89A5B;
+  }
   a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <p class="eyebrow">Открывается с телефона</p>
+    <p class="eyebrow">Без установки, по ссылке</p>
     <h1>Мини-игры</h1>
 
+    <h2 class="section">С телефона</h2>
+    <p class="section__hint">Каждый открывает ссылку у себя, ведущий даёт общий старт.</p>
+
+    <a class="card" href="faith-words/">
+      <div class="card__head">
+        <div class="cubes" aria-hidden="true">
+          <span class="cube">В</span><span class="cube">Е</span><span class="cube">Р</span><span class="cube">А</span>
+        </div>
+        <span class="tag tag--youth">Молодёжь</span>
+      </div>
+      <div class="card__name">Слова веры</div>
+      <p class="card__desc">20 слов с перепутанными буквами: от «молитвы» до «благодати». Собираем из кубиков на скорость, выигрывает самое короткое время.</p>
+      <p class="card__meta">Играть →</p>
+    </a>
+
     <a class="card" href="words/">
-      <div class="cubes" aria-hidden="true">
-        <span class="cube">С</span><span class="cube">Л</span><span class="cube">О</span><span class="cube">В</span>
+      <div class="card__head">
+        <div class="cubes" aria-hidden="true">
+          <span class="cube">С</span><span class="cube">Л</span><span class="cube">О</span><span class="cube">В</span>
+        </div>
+        <span class="tag tag--baby">Бебишауэр</span>
       </div>
       <div class="card__name">Детские слова</div>
       <p class="card__desc">20 слов с перепутанными буквами. Собираем из кубиков на скорость — выигрывает самое короткое время.</p>
@@ -104,21 +161,33 @@
     </a>
 
     <a class="card" href="bag/">
-      <div class="bag-mini" aria-hidden="true">
-        <span class="bag-mini__handle"></span>
-        <span class="bag-mini__body"></span>
+      <div class="card__head">
+        <div class="bag-mini" aria-hidden="true">
+          <span class="bag-mini__handle"></span>
+          <span class="bag-mini__body"></span>
+        </div>
+        <span class="tag tag--baby">Бебишауэр</span>
       </div>
       <div class="card__name">Что в маминой сумке?</div>
       <p class="card__desc">Три минуты, чтобы вспомнить как можно больше детских вещей. Счёт считается сам — ведущему не нужно разбирать листочки.</p>
       <p class="card__meta">Играть →</p>
     </a>
 
-    <p class="next">
-      Есть <a href="v2/">версия 2</a>: те же правила, но кубики и вещи падают по-настоящему.
-    </p>
-    <p class="next">
-      Для молодёжной встречи — <a href="v3/">версия 3</a>: та же игра со словами, слова из христианской жизни.
-    </p>
+    <h2 class="section">На проектор</h2>
+    <p class="section__hint">Открывается на ноутбуке, листает помощник.</p>
+
+    <a class="card" href="screen/">
+      <div class="card__head">
+        <div class="screen-mini" aria-hidden="true">
+          <span class="screen-mini__face"></span>
+          <span class="screen-mini__leg"></span>
+        </div>
+        <span class="tag tag--youth">Молодёжь</span>
+      </div>
+      <div class="card__name">Экран ведущего</div>
+      <p class="card__desc">«Найди своих», «Снежный ком», «Кто я?», «Слова», «Правда или ложь» и блиц. Счёт команд считается сам, есть распечатка для ведущего.</p>
+      <p class="card__meta">Открыть на ноутбуке →</p>
+    </a>
   </div>
 </body>
 </html>

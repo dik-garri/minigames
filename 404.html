@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F3ECFF">
+<title>Мини-игры — страница не найдена</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<script>
+  /* GitHub Pages отдаёт эту страницу на любой несуществующий адрес.
+     Старые ссылки на версии v2 и v3 ведём туда, где игры лежат теперь. */
+  const MOVED = [
+    ['/v3/screen/', '/screen/'],
+    ['/v3/words/', '/faith-words/'],
+    ['/v3/', '/'],
+    ['/v2/words/', '/words/'],
+    ['/v2/bag/', '/bag/'],
+    ['/v2/', '/']
+  ];
+  let path = location.pathname;
+  // «…/v3/screen» без косой черты в конце — тоже папка
+  if (!path.endsWith('/') && !path.split('/').pop().includes('.')) path += '/';
+  const hit = MOVED.find(([from]) => path.includes(from));
+  if (hit) location.replace(path.replace(hit[0], hit[1]) + location.search + location.hash);
+</script>
+<style>
+  :root {
+    --ink: #3A2B3F;
+    --ink-soft: #7A6B82;
+    --accent-ink: #C22B45;
+  }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background: #F3ECFF;
+    text-align: center;
+  }
+  h1 { margin: 0 0 10px; font-size: 32px; }
+  p { margin: 0; font-size: 16px; color: var(--ink-soft); }
+  a { color: var(--accent-ink); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>Такой страницы нет</h1>
+    <p>Все игры — на <a id="home" href="/">главной</a>.</p>
+  </div>
+<script>
+  // На github.io сайт живёт в подпапке репозитория — ведём на её корень.
+  if (location.hostname.endsWith('github.io')) {
+    document.getElementById('home').href = `/${location.pathname.split('/')[1]}/`;
+  }
+</script>
+</body>
+</html>

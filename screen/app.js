@@ -2,7 +2,7 @@
    Листает помощник с ноутбука — мышью, стрелками или кликером для презентаций.
    Счёт лежит в localStorage: перезагрузка страницы ничего не теряет. */
 
-const SAVE_KEY = 'faith-screen-v3';
+const SAVE_KEY = 'faith-screen';
 const BLITZ_MS = 60 * 1000;   // время одной команды в блице
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 6;
