@@ -92,3 +92,7 @@
 python3 -m http.server 8000
 # открыть http://localhost:8000/
 ```
+
+---
+
+[Все проекты →](https://dik-garri.github.io/garry/)
